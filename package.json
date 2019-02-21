@@ -1,0 +1,40 @@
+{
+	"name": "DBN",
+	"version": "0.1.0",
+	"author": "Brendan Berg <brendan@berg.industries>",
+	"description": "A recreation of John Maeda's Design by Numbers environment",
+	"contributors": [
+		{
+			"name": "Brendan Berg",
+			"email": "brendan@berg.industries"
+		}
+	],
+	"scripts": {
+		"clean": "rm -rf build/*",
+		"watch": "webpack --watch",
+		"start": "webpack-dev-server --open",
+		"build": "webpack"
+	},
+	"keywords": [
+		"design by numbers",
+		"creative code",
+		"graphics",
+		"beginner"
+	],
+	"devDependencies": {
+		"babel-loader": "^8.0.5",
+		"bundle-loader": "^0.5.6",
+		"clean-webpack-plugin": "^1.0.1",
+		"copy-webpack-plugin": "^4.6.0",
+		"file-loader": "^3.0.1",
+		"html-webpack-plugin": "^3.2.0",
+		"mocha": "^6.0.0",
+		"pegjs": "^0.10.0",
+		"pegjs-loader": "^0.5.4",
+		"webpack": "^4.29.5",
+		"webpack-cli": "^3.2.3",
+		"webpack-dev-server": "^3.1.14"
+	},
+	"dependencies": {},
+	"license": "MIT"
+}

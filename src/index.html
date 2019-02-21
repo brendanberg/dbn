@@ -1,0 +1,356 @@
+<html>
+	<head>
+		<title>DBN</title>
+		<script src="/js/main.bundle.js?v=366a4" type="application/javascript"></script>
+		<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
+		<link rel="stylesheet" href="/css/style.css?v=366a4" type="text/css" />
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-134176228-2"></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'UA-134176228-2');
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<div class="title">
+				<p class="noselect"><strong>Draw By Numeral</strong>
+				by <a href="https://berg.industries">Brendan Berg</a>
+				based on <a href="http://dbn.media.mit.edu">Design By Numbers</a>,
+				created at the MIT Media Lab</p>
+			</div>
+			<div class="control">
+				<span class="left noselect">
+					<button id="play"></button>
+					<button id="stop"></button>
+				</span>
+				<span class="right noselect">
+					<button id="open"></button>
+					<button id="save"></button>
+					<button id="beautify"></button>
+				</span>
+			</div>
+			<div class="dialog"><p class="noselect" id="message-banner"></p></div>
+			<div class="column left">
+				<div class="paper">
+					<canvas id="paper" width="202" height="202"></canvas>
+				</div>
+			</div>
+			<div class="column right" style="position: relative;">
+				<div class="backdrop" id="bk"><div class="highlights" id="hl"></div></div>
+				<textarea class="code" id="sketch" spellcheck="false">// Type a program or click the "Open" icon (&#x21EA;) for examples.
+</textarea>
+			</div>
+		</div>
+		<div class="overlay hidden invisible" id="modal">
+			<div class="modal">
+				<div class="banner noselect">
+					<span class="tab selected" id="intro-tab">Introduction</span>
+					<span class="tab" id="examples-tab">Examples</span>
+					<button class="right" id="close">&#x2717;</button>
+				</div>
+				<div class="frame" id="intro-card">
+					<section>
+					<h2>The DBN Environment</h2>
+
+					<p>Draw By Numeral is a programming environment and language designed
+					to introduce the basic concepts of computer programming by giving
+					immediate feedback through a simple graphics rendering context.</p>
+
+					<p>The DBN environment presents a code editor and graphical output
+					side-by-side in a single window. The features of the environment are
+					described below.</p>
+
+					<ul>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/editor.gif">Code Editor</a></strong>
+						&mdash; DBN programs can be written and edited in the editor pane</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/output.gif">Output Pane</a></strong>
+						&mdash; displays the virtual sheet of paper that programs draw on</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/play.gif">Play
+							Button</a></strong>
+						&mdash; checks that the program can be run and starts the program</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/stop.gif">Stop
+							Button</a></strong>
+						&mdash; stops the currently running program</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/open.gif">Open
+							Button</a></strong>
+						&mdash; displays the Open panel to load saved DBN programs</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/save.gif">Save
+							Button</a></strong>
+						&mdash; displays the Save panel to save the current DBN program</li>
+					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/beautify.gif">Beautify
+							Button</a></strong>
+						&mdash; re-indents the program text for easier reading</li>
+					</ul>
+
+					<img src="/assets/window.gif" id="tut-window" class="illustration" data-bg-src="/assets/background.gif">
+					</section>
+
+					<section>
+					<h2>The DBN Language</h2>
+
+					<p>The DBN language is designed to be easy for beginners.
+					The language intentonally leaves out many features that are
+					common in general-purpouse languages such as Python or JavaScript.
+					By limiting the features of DBN, we can spend less time
+					learning the complexities of a general-purpose language and
+					more time learning broader concepts of computer programming.</p>
+
+					<p>A DBN program's output is a virtual sheet of paper. The
+					paper is divided into a grid of 101 &times; 101 squares,
+					each of which can be filled with a shade of gray. The
+					language </p>
+
+					<h3>Making a Statement</h3>
+
+					<p>The simplest DBN program consists of a single statement:</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/statements_0.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0</pre></td>
+						</tr>
+					</table>
+
+					<p>This statement tells DBN to color the entire paper white.
+					Taking a closer look at the statement, we see it consists of
+					a command name (<code>Paper</code>), followed by a space, and
+					then a number that tells DBN how light or dark the paper
+					should be. We call this numerical value an <em>argument</em>.</p>
+					
+					<p class="aside">Grayscale values in DBN are represented as
+					numbers from 0 (white) to 100 (black).</p>
+
+					<p>Let's look at a more complex example. The following
+					DBN program draws a single line from the lower left to the
+					upper right of the paper.</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/statements_1.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0
+Pen 100
+Line 0 0 100 100</pre></td>
+						</tr>
+					</table>
+
+					<p>This program consists of three statements, each on its
+					own line. In DBN, only one statement may be written per
+					line, and statements cannot span multiple lines.</p>
+					
+					<p>Looking at the second line, we see a new command,
+					<code>Pen</code>, which takes one argument. Like
+					the <code>Paper</code> command, the argument represents
+					the desired grayscale value. The <code>Line</code> command
+					expects four arguments, which must be separated by spaces.</p>
+
+					<p>The arguments to the <code>Line</code> command tell it
+					the x and y coordinates of the two points that will be
+					connected by a line. In this example, the program draws a
+					line from <nobr>(0, 0)</nobr> to <nobr>(100, 100)</nobr>.
+					The order of the arguments to the command is important:
+					the first two arguments represent the x and y coordinates of
+					the first point, and the last two arguments represent the
+					coordinates of the second point.</p>
+
+					<h3>Variables</h3>
+
+					<p>A <em>variable</em> is a placeholder for a numeric value.
+					Anywhere a number is used, a variable may be used in its place.</p>
+
+					<p>We can give the variable a value using the <code>Set</code>
+					command. <code>Set</code> expects two arguments: the first
+					argument is the name we will use to refer to the variable
+					and the second argument is the value that will be assigned
+					to the variable.</p>
+
+<pre>Set X 50</pre>
+
+					<p>In the previvous statement, the variable called <code>X</code>
+					gets the value 50. We can refer to <code>X</code> elsewhere
+					in our program by its name, as in the following <code>Line</code>
+					command:</p>
+
+<pre>Line 20 X 80 X</pre>
+
+					<p>Since the variable <code>X</code> was previously given
+					the value 50, the program will draw a line from <nobr>(20, 50)</nobr>
+					to <nobr>(80, 50).</nobr></p>
+
+					<h3>Calculations</h3>
+
+					<p>Expressions are mathematical calculations enclosed in parentheses.</p>
+
+<pre>Paper (100 - 50)</pre>
+
+					<p>Parentheses may also be used to force a different order
+					of operations. DBN will compute multiplication and division
+					before addition and subtraction (just like how we learned
+					to do arithmetic in school). If we want to perform addition
+					before multiplication, just enclose the addition in parentheses
+					like this: <code>((10 + 1) * 50)</code>.</p>
+
+					<h3>Repeating Yourself</h3>
+
+					<p>Loops are a way to perform a sequence of statements
+					repeatedly. We could perform a command multiple times by typing it in
+					repeatedly, but as you can see in the following example, it
+					quickly becomes tedious to type.</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/looping_0.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0
+Pen 70
+Line 0 40 100 40
+Line 0 60 100 60
+Line 0 70 100 70
+Line 0 75 100 75
+Line 0 78 100 78
+Line 0 80 100 80
+</pre></td>
+						</tr>
+					</table>
+
+					<p>To make it easier to perform repetition in your programs,
+					DBN provides commands to repeat a sequence of statements
+					multiple times. <code>Repeat</code> is one such command.</p>
+
+					<p>A <code>Repeat</code> statement expects a variable name 
+					that will hold the current iteration count, a value from
+					which to start counting, and a value to count until. The
+					<code>Repeat</code> statement must be followed by a
+					sequence of statements enclosed in braces (called a
+					<em>block</em>.)</p>
+
+					<p>Inside the block, we can refer to the variable and use
+					it as a value to the repeated statements. This lets us
+					repeat ourselves while changing what we say slightly each time</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/looping_1.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0
+Repeat X 0 100
+{
+    Pen X
+    Line X 0 X 100
+}</pre></td>
+						</tr>
+					</table>
+
+					<p>In the preceding example, the <code>Repeat</code>
+					statement begins by giving <code>X</code> the value 0. It then executes
+					the statements in the block and increments the value of <code>X</code>
+					by one before repeating. Once the value of <code>X</code> exceeds 100,
+					the repetition stops and execution continues with the rest
+					of the program.</p>
+
+					<p class="aside">Loops don't always have to count up! If
+					the <code>Repeat</code> statement's end value is
+					<em>less than</em> the start value, the iteration count will
+					<em>decrement</em> by 1 after each execution of the loop body.</p>
+
+					<h3>Asking Questions</h3>
+
+					<p>Occasionally we would like to be able to run a sequence
+					of statements only when certain conditions are true. DBN
+					provides four comparison commands that test whether the
+					two provided values have a particular relation, and execute
+					the block directly below them only when the desired relation
+					holds.</p>
+
+					<p>Consider this program:</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/conditions_0.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0
+Pen 100
+Set A 20
+Smaller? A 50
+{
+    Line A A 50 50
+}</pre></td>
+						</tr>
+					</table>
+
+					<p>The <code>Smaller?</code> command tests whether the first
+					argument is less than the second, and since the value in
+					the variable <code>A</code> is less than 50, the test passes
+					and the program executes the block with the <code>Line</code>
+					command. If we were to edit the program so the value of
+					<code>A</code> were 80, the test would fail and no line
+					would be drawn.</p>
+
+					<p>The three other comparison commands are <code>NotSmaller?</code>,
+					which tests whether the first argument is larger than or
+					the same as the second argument; <code>Same?</code> which
+					tests whether the two arguments are equal; and
+					<code>NotSame?</code>, which tests whether the two arguments
+					are different.</p>
+					
+					<p>Comparisons are frequently helpful when writing loops.
+					If we want to execute certain commands only when the
+					iteration count is within a desired range, we can use
+					a comparison statement inside the loop body</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/conditions_1.png' class='example' width='101' height='101'></td>
+<td><pre>Repeat X 0 100
+{
+    Pen X
+    Smaller? X 50
+    {
+        Line 0 X 100 X
+    }
+}</pre></td>
+						</tr>
+					</table>
+
+					<p>As we repeat from 0 to 100, we test the value of <code>X</code>
+					each time through the loop, and only draw a line if <code>X</code>
+					is less than 50.</p>
+
+					<h3>Defining Commands</h3>
+
+					<p>We can define our own commands with the <code>Command</code>
+					command.</p>
+
+					<table>
+						<tr>
+<td><img src='/assets/examples/commands_0.png' class='example' width='101' height='101'></td>
+<td><pre>Paper 0
+Pen 100
+Command Rectangle x0 y0 x1 y1
+{
+    Line x0 y0 x1 y0
+    Line x0 y0 x0 y1
+    Line x0 y1 x1 y1
+    Line x1 y0 x1 y1
+}
+Rectangle 30 30 70 70
+</pre></td>
+						</tr>
+					</table>
+					</section>
+				</div>
+				<div class="frame hidden" id="examples-card">
+					<section>
+						<h2>Examples</h2>
+						<ul>
+							<li>Lines and Variables</li>
+							<li>Questions</li>
+							<li>Looping</li>
+							<li>Nesting</li>
+							<li>Commands</li>
+						</ul>
+					</section>
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>
