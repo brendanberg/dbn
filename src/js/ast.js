@@ -1,4 +1,5 @@
 import * as Op from './opcodes';
+import assemble from './assemble';
 
 let currentSymbol = 0;
 
@@ -230,20 +231,28 @@ const AST = {
 	},
 
 	Program: function (statements, meta) {
-		this.meta = Object.assign({type: 'program'}, meta || {});
+		this.meta = Object.assign({
+				type: 'program',
+				locals: [],
+				// IMPORTANT! There shouldn't actually be unbound or args on
+				// a program. These properties are here so transforms don't fail
+				unbound: [],
+			}, meta || {});
 
-		this.locals = [];
-		this.defns = [];
-		this.outerDefns = [];
+		//this.locals = [];
+		//this.defns = [];
+		//this.outerDefns = [];
+		this.args = [];
 		this.statements = statements;
+		this.definitions = [];
 		this.exports = [];
 	},
 
 	Block: function(statements, meta) {
 		this.meta = Object.assign({type: 'block'}, meta || {});
 
-		this.locals = [];
-		this.defns = [];
+		//this.locals = [];
+		//this.defns = [];
 		this.outerDefns = [];
 		this.statements = statements;
 	},
@@ -251,7 +260,7 @@ const AST = {
 	Loop: function(name, start, stop, statements, meta) {
 		// TODO: Ensure start and stop are scalar value types.
 		this.meta = Object.assign({type: 'loop', inner: true}, meta || {});
-		this.locals = [];
+		//this.locals = [];
 		this.iterator = name;
 		this.start = start;
 		this.stop = stop;
@@ -261,7 +270,7 @@ const AST = {
 	Condition: function(predicate, statements, meta) {
 		this.meta = Object.assign({type: 'condition'}, meta || {});
 		this.predicate = predicate;
-		this.locals = [];
+		//this.locals = [];
 		this.statements = statements;
 	},
 
@@ -283,29 +292,40 @@ const AST = {
 	},
 
 	Command: function(name, idents, statements, meta) {
-		this.meta = Object.assign({type: 'command', unbound: []}, meta || {});
+		this.meta = Object.assign({
+				type: 'command',
+				unbound: [],
+				locals: [],
+				args: []
+			}, meta || {});
 		this.name = name;
-		this.locals = [];
-		this.defns = [];
-		this.outerDefns = [];
+		//this.locals = [];
+		//this.defns = [];
+		//this.outerDefns = [];
 		this.args = idents.map(x => {
 			x.meta.argument = true;
 			return x;
 		});
 		this.statements = statements;
+		this.definitions = [];
 	},
 
 	Number: function(name, idents, statements, meta) {
-		this.meta = Object.assign({type: 'number', unbound: []}, meta || {});
+		this.meta = Object.assign({
+				type: 'number',
+				unbound: [],
+				locals: []
+			}, meta || {});
 		this.name = name;
-		this.locals = [];
-		this.defns = [];
-		this.outerDefns = [];
+		//this.locals = [];
+		//this.defns = [];
+		//this.outerDefns = [];
 		this.args = idents.map(x => {
 			x.meta.argument = true;
 			return x;
 		});
 		this.statements = statements;
+		this.definitions = [];
 	},
 
 	Statement: function(name, args, meta) {
@@ -371,164 +391,193 @@ AST.Program.prototype.applyTransformations = function(transformations) {
 // Transform funcs because ugh
 
 AST.Program.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.statements = node.statements.map(st => st.transform(transformFunc));
-		node.defns = node.defns.map(def => def.transform(transformFunc));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Block.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.statements = node.statements.map(st => st.transform(transformFunc));
-		node.defns = node.defns.map(def => def.transform(transformFunc));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Loop.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
+		// TODO: Transform apply changes here!
 		if (this.iterator !== null && this.start !== null && this.stop !== null) {
-			node.iterator = node.iterator.transform(transformFunc);
-			node.start = node.start.transform(transformFunc);
-			node.stop = node.stop.transform(transformFunc);
+			node.iterator = node.iterator.transform.apply(
+					node.iterator, [transformFunc].concat(args));
+			node.start = node.start.transform.apply(
+					node.start, [transformFunc].concat(args));
+			node.stop = node.stop.transform.apply(
+					node.stop, [transformFunc].concat(args));
 		}
-		node.statements = node.statements.map(st => st.transform(transformFunc));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Condition.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.predicate = node.predicate.transform(transformFunc);
-		node.statements = node.statements.map(st => st.transform(transformFunc));
+		node.predicate = node.predicate.transform.apply(
+				node.predicate, [transformFunc].concat(args));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 	
 	return node;
 };
 
 AST.Not.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.expression = node.expression.transform(transformFunc);
+		node.expression = node.expression.transform.apply(
+				node.expression, [transformFunc].concat(args));
 	}
 	
 	return node;
 };
 
 AST.LessThan.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.lhs = node.lhs.transform(transformFunc);
-		node.rhs = node.rhs.transform(transformFunc);
+		node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+		node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
 	}
 
 	return node;
 };
 
 AST.Equals.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.lhs = node.lhs.transform(transformFunc);
-		node.rhs = node.rhs.transform(transformFunc);
+		node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+		node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
 	}
 
 	return node;
 };
 
 AST.Command.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.name = node.name.transform(transformFunc);
-		node.args = node.args.map(arg => arg.transform(transformFunc));
-		node.statements = node.statements.map(st => st.transform(transformFunc));
-		node.defns = node.defns.map(def => def.transform(transformFunc));
+		node.name = node.name.transform.apply(node.name, [transformFunc].concat(args));
+		node.args = node.args.map(arg =>
+			arg.transform.apply(arg, [transformFunc].concat(args)));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Number.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.name = node.name.transform(transformFunc);
-		node.args = node.args.map(arg => arg.transform(transformFunc));
-		node.statements = node.statements.map(st => st.transform(transformFunc));
-		node.defns = node.defns.map(def => def.transform(transformFunc));
+		node.name = node.name.transform.apply(node.name, [transformFunc].concat(args));
+		node.args = node.args.map(arg =>
+			arg.transform.apply(arg, [transformFunc].concat(args)));
+		node.statements = node.statements.map(st =>
+			st.transform.apply(st, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Statement.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.args = node.args.map(arg => arg.transform(transformFunc));
+		node.args = node.args.map(arg =>
+				arg.transform.apply(arg, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Generator.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.args = node.args.map(arg => arg.transform(transformFunc));
+		node.args = node.args.map(arg =>
+				arg.transform.apply(arg, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Identifier.prototype.transform = function(transformFunc) {
-	let [node, _] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, __] = transformFunc.apply(null, [this].concat(args));
 	return node;
 };
 
 AST.Integer.prototype.transform = function(transformFunc) {
-	let [node, _] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, __] = transformFunc.apply(null, [this].concat(args));
 	return node;
 };
 
 AST.Vector.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.values = node.values.map(val => val.transform(transformFunc));
+		node.values = node.values.map(val =>
+				val.transform.apply(val, [transformFunc].concat(args)));
 	}
 
 	return node;
 };
 
 AST.Operator.prototype.transform = function(transformFunc) {
-	let [node, descend] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, descend] = transformFunc.apply(null, [this].concat(args));
 
 	if (descend) {
-		node.lhs = node.lhs.transform(transformFunc);
-		node.rhs = node.rhs.transform(transformFunc);
+		node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+		node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
 	}
 
 	return node;
 };
 
 AST.Comment.prototype.transform = function(transformFunc) {
-	let [node, _] = transformFunc(this);
+	const args = Array.prototype.slice.call(arguments, 1);
+	let [node, __] = transformFunc.apply(null, [this].concat(args));
 	return node;
 };
 
@@ -538,8 +587,8 @@ AST.Comment.prototype.transform = function(transformFunc) {
 
 AST.Program.prototype.toString = function() {
 	if (this.statements && this.statements.length > 0) {
-		return this.statements.map(st => st.toString())
-			.concat(this.defns.map(def => def.toString())).join('\n');
+		return this.statements.map(st => st.toString()).join('\n')
+		//	.concat(this.defns.map(def => def.toString())).join('\n');
 	} else {
 		return '';
 	}
@@ -633,12 +682,12 @@ AST.Program.prototype.emit = function(ctx) {
 
 	const range = n => Array(n).fill(0).map((x, y) => y);
 
-	let program = [Op.STACK_ALLOC, this.locals.length]
+	let program = [Op.STACK_ALLOC, this.meta.locals.length]
 		.concat(this.statements.flatMap(s => s.emit()))
 		.concat([
-			Op.STACK_FREE, this.locals.length,
+			Op.STACK_FREE, this.meta.locals.length,
 			Op.HALT])
-		.concat(this.defns.flatMap(d => d.emit()))
+		.concat(this.definitions.flatMap(d => d.emit()))
 		.concat(this.exports.flatMap(fn => {
 			// We need to generate and append the pre-rolled assembly
 			// code for Bresenham's line algorithm
@@ -1057,23 +1106,23 @@ AST.Loop.prototype.emit = function() {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	const body = AST.tools.gensym();
+	const _body = AST.tools.gensym();
 
 	// Special case for infinite loops!
 	if (this.iterator === null && this.start === null && this.stop === null) {
-		let assem = [Op.LABEL, body].concat(this.statements.flatMap(s => s.emit()))
+		let assem = [Op.LABEL, _body].concat(this.statements.flatMap(s => s.emit()))
 			.concat([Op.LOCATION, start, end]);;
 		
 		if (this.meta.inner) { assem.push(Op.REDRAW); }
 		
 		return assem.concat([
-			Op.JUMP, body
+			Op.JUMP, _body
 		]);
 	}
 
-	const loop = AST.tools.gensym();
-	const endval = AST.tools.gensym();
-	const increment = AST.tools.gensym();
+	const _loop = AST.tools.gensym();
+	const _endval = AST.tools.gensym();
+	const _increment = AST.tools.gensym();
 
 	let assem = this.start.emit().concat([
 		Op.LOCATION, start, end,
@@ -1082,15 +1131,15 @@ AST.Loop.prototype.emit = function() {
 	]).concat(this.stop.emit()).concat([
 		Op.LOCATION, start, end,
 		Op.DUPLICATE,
-		Op.SET_LOCAL, endval,
+		Op.SET_LOCAL, _endval,
 		Op.SUBTRACT,
-		Op.LABEL, body,
+		Op.LABEL, _body,
 	]).concat(this.statements.flatMap(s => s.emit())).concat([
 		Op.LOCATION, start, end,
 		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, increment, // Jump if start <= end
+		Op.JUMP_IF_NEGATIVE, _increment, // Jump if start <= end
 
-		Op.GET_LOCAL, endval,
+		Op.GET_LOCAL, _endval,
 		Op.GET_LOCAL, this.iterator.canonical,
 		Op.DUPLICATE,
 		Op.CONSTANT, 1,
@@ -1099,15 +1148,15 @@ AST.Loop.prototype.emit = function() {
 		Op.CONSTANT, 1,
 		Op.ADD,
 		Op.SUBTRACT,
-		Op.JUMP, loop,
+		Op.JUMP, _loop,
 
-		Op.LABEL, increment,
+		Op.LABEL, _increment,
 		Op.GET_LOCAL, this.iterator.canonical,
 		Op.CONSTANT, 1,
 		Op.ADD,
 		Op.DUPLICATE,
 		Op.SET_LOCAL, this.iterator.canonical,
-		Op.GET_LOCAL, endval,
+		Op.GET_LOCAL, _endval,
 		Op.CONSTANT, 1,
 		Op.ADD,
 		Op.SUBTRACT
@@ -1116,8 +1165,8 @@ AST.Loop.prototype.emit = function() {
 	if (this.meta.inner) { assem.push(Op.REDRAW); }
 
 	return assem.concat([
-		Op.LABEL, loop,
-		Op.JUMP_IF_NEGATIVE, body,
+		Op.LABEL, _loop,
+		Op.JUMP_IF_NEGATIVE, _body,
 		Op.POP
 	]);
 }
@@ -1135,7 +1184,7 @@ AST.Condition.prototype.emit = function() {
 	if (this.predicate.meta.type === 'not') {
 		const bodylabel = AST.tools.gensym();
 
-		return [Op.LOCATION, start, end]
+		let foo = [Op.LOCATION, start, end]
 			.concat(this.predicate.emit())
 			.concat([
 				bodylabel,
@@ -1143,12 +1192,18 @@ AST.Condition.prototype.emit = function() {
 				Op.LABEL, bodylabel])
 			.concat(this.statements.flatMap(s => s.emit()))
 			.concat([Op.LABEL, endlabel]);
+
+		console.log(foo);
+		return foo
 	} else {
-		return this.predicate.emit().concat([
+		let foo = this.predicate.emit().concat([
 			endlabel
 		]).concat(this.statements.flatMap(s => s.emit())).concat([
 			Op.LABEL, endlabel
 		]);
+
+		console.log(foo);
+		return foo
 	}
 };
 
@@ -1185,16 +1240,17 @@ AST.Command.prototype.emit = function() {
 	return ([
 		Op.LOCATION, start, end,
 		Op.LABEL, this.name.canonical,
-		Op.STACK_ALLOC, this.locals.length])
+		Op.STACK_ALLOC, this.meta.locals.length])
 	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
 	.concat(this.meta.unbound.flatMap(a => [Op.ARGUMENT, a]))
 	.concat(this.args.slice(0).reverse().flatMap(a => [Op.SET_ARGUMENT, a.canonical]))
 	.concat(this.statements.flatMap(s => s.emit()))
 	.concat([
 		Op.LOCATION, start, end,
-		Op.STACK_FREE, this.locals.length,
+		Op.STACK_FREE, this.meta.locals.length,
 		Op.CONSTANT, 0,
-		Op.RETURN]);
+		Op.RETURN])
+	.concat(this.definitions.flatMap(d => d.emit()));
 };
 
 AST.Number.prototype.emit = function(ctx) {
@@ -1209,12 +1265,13 @@ AST.Number.prototype.emit = function(ctx) {
 	return ([
 		Op.LOCATION, start, end,
 		Op.LABEL, this.name.canonical,
-		Op.STACK_ALLOC, this.locals.length,
+		Op.STACK_ALLOC, this.meta.locals.length,
 	]).concat(args).concat(this.statements.flatMap(s => s.emit())).concat([
 		Op.LOCATION, start, end,
-		Op.STACK_FREE, this.locals.length,
+		Op.STACK_FREE, this.meta.locals.length,
 		Op.RETURN
-	]);
+	])
+	.concat(this.definitions.flatMap(d => d.emit()));
 };
 
 AST.Statement.prototype.emit = function(ctx) {

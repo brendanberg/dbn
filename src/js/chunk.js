@@ -301,6 +301,7 @@ Chunk.prototype.disassemble = function() {
 				break;
 			}
 			case Op.HALT: {
+				console.log(instrs.slice(i - 10, i + 10))
 				addrs.push('    ');
 				offsets[i] = instrs.length;
 				instrs.push('\tHALT');
@@ -308,14 +309,14 @@ Chunk.prototype.disassemble = function() {
 				instrs.push('\t----------');
 				break;
 			}
-			default:
+			default: {
 				const hex = this.code[i].toString(16).toUpperCase();
 				throw {
 					message: 'unrecognized opcode 0x' + hex,
 					start: this.getStartLocation(i),
 					end: this.getEndLocation(i)
 				};
-				//throw '\t*** UNRECOGNIZED OPCODE ' + this.code[i] + ' ***';
+			}
 		}
 	}
 

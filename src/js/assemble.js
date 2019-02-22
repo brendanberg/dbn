@@ -227,8 +227,12 @@ const assemble = function(label, assembly, exports) {
 				break;
 			}
 			default:
-				console.error('unexpected opcode ' + assembly[i], i);
-				throw 'encountered unexpected opcode';
+				const hex = assembly[i].toString(16).toUpperCase();
+				throw {
+					message: 'unrecognized opcode 0x' + hex,
+					start: {offset: locations[locations.length - 1][1]},
+					end: {offset: locations[locations.length - 1][2]}
+				};
 		}
 	}
 
