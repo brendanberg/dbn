@@ -1110,65 +1110,61 @@ AST.Loop.prototype.emit = function() {
 
 	// Special case for infinite loops!
 	if (this.iterator === null && this.start === null && this.stop === null) {
-		let assem = [Op.LABEL, _body].concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LOCATION, start, end]);;
-		
-		if (this.meta.inner) { assem.push(Op.REDRAW); }
-		
-		return assem.concat([
-			Op.JUMP, _body
-		]);
+		let assem = [Op.LABEL, _body]
+			.concat(this.statements.flatMap(s => s.emit()))
+			.concat([Op.LOCATION, start, end])
+			.concat(this.meta.inner ? [Op.REDRAW] : [])
+			.concat(Op.JUMP, _body);
 	}
 
-	const _loop = AST.tools.gensym();
-	const _endval = AST.tools.gensym();
-	const _increment = AST.tools.gensym();
+	const isArgument = (this.meta.argument === true) || (this.meta.bound === false);
+	const store_iterator = isArgument ? Op.SET_ARGUMENT : Op.SET_LOCAL;
+	const load_iterator = isArgument ? Op.GET_ARGUMENT : Op.GET_LOCAL;
 
-	let assem = this.start.emit().concat([
+	const _increment = AST.tools.gensym();
+	const _break = AST.tools.gensym();
+
+	let assem = this.stop.emit().concat([
 		Op.LOCATION, start, end,
 		Op.DUPLICATE,
-		Op.SET_LOCAL, this.iterator.canonical
-	]).concat(this.stop.emit()).concat([
+	]).concat(this.start.emit()).concat([
 		Op.LOCATION, start, end,
 		Op.DUPLICATE,
-		Op.SET_LOCAL, _endval,
+		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
 		Op.LABEL, _body,
 	]).concat(this.statements.flatMap(s => s.emit())).concat([
 		Op.LOCATION, start, end,
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _increment, // Jump if start <= end
+		Op.JUMP_IF_ZERO, _break,
+		Op.JUMP_IF_NONNEGATIVE, _increment,
 
-		Op.GET_LOCAL, _endval,
-		Op.GET_LOCAL, this.iterator.canonical,
 		Op.DUPLICATE,
+		load_iterator, this.iterator.canonical,
 		Op.CONSTANT, 1,
 		Op.SUBTRACT,
-		Op.SET_LOCAL, this.iterator.canonical,
-		Op.CONSTANT, 1,
-		Op.ADD,
+		Op.DUPLICATE,
+		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
-		Op.JUMP, _loop,
+	]).concat(this.meta.inner ? [Op.REDRAW] : []).concat([
+		Op.JUMP, _body,
 
 		Op.LABEL, _increment,
-		Op.GET_LOCAL, this.iterator.canonical,
+		Op.DUPLICATE,
+		load_iterator, this.iterator.canonical,
 		Op.CONSTANT, 1,
 		Op.ADD,
 		Op.DUPLICATE,
-		Op.SET_LOCAL, this.iterator.canonical,
-		Op.GET_LOCAL, _endval,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT
-	]);
+		store_iterator, this.iterator.canonical,
+		Op.SUBTRACT,
+	]).concat(this.meta.inner ? [Op.REDRAW] : []).concat([
+		Op.JUMP, _body,
 
-	if (this.meta.inner) { assem.push(Op.REDRAW); }
-
-	return assem.concat([
-		Op.LABEL, _loop,
-		Op.JUMP_IF_NEGATIVE, _body,
-		Op.POP
+		Op.LABEL, _break,
+		Op.POP,
+		Op.POP,
 	]);
+	console.log(assem);
+	return assem;
 }
 
 AST.Condition.prototype.emit = function() {
@@ -1184,8 +1180,8 @@ AST.Condition.prototype.emit = function() {
 	if (this.predicate.meta.type === 'not') {
 		const bodylabel = AST.tools.gensym();
 
-		let foo = [Op.LOCATION, start, end]
-			.concat(this.predicate.emit())
+		let foo = /*[Op.LOCATION, start, end]
+			.concat*/(this.predicate.emit())
 			.concat([
 				bodylabel,
 				Op.JUMP, endlabel,
@@ -1196,11 +1192,10 @@ AST.Condition.prototype.emit = function() {
 		console.log(foo);
 		return foo
 	} else {
-		let foo = this.predicate.emit().concat([
-			endlabel
-		]).concat(this.statements.flatMap(s => s.emit())).concat([
-			Op.LABEL, endlabel
-		]);
+		let foo = this.predicate.emit()
+			.concat([endlabel])
+			.concat(this.statements.flatMap(s => s.emit()))
+			.concat([Op.LABEL, endlabel]);
 
 		console.log(foo);
 		return foo

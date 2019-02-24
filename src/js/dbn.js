@@ -200,17 +200,29 @@ DBN.prototype.run = function(source, callback) {
 		} else if (node.meta.type === 'loop') {
 			// If we encounter a `loop` node, push the loop iterator variable
 			// name into locals and recursively descend into each statement
+			const name = node.iterator.canonical;
 
-			outerMeta.locals.push(node.iterator.canonical, node.iterator.canonical + '$0');
+			if (!outerMeta.unbound.includes(name)) {
+				if (outerMeta.args.includes(name)) {
+					node.iterator.meta.argument = true;
+				} else if (!outerMeta.locals.includes(name)) {
+					outerMeta.locals.push(name);
+					node.iterator.meta.bound = true;
+				}
+			}
+
+			node.start = node.start.transform(resolveTransform, outerMeta);
+			node.stop = node.stop.transform(resolveTransform, outerMeta);
+
 			node.statements = node.statements.map(s => s.transform(resolveTransform, outerMeta));
 			return [node, false];
 
-		} /*else if (node.meta.type === 'condition') {
+		} else if (node.meta.type === 'condition') {
 			// TODO: Can this simply be handled by the default recursive case?
+			node.predicate = node.predicate.transform(resolveTransform, outerMeta);
 			node.statements = node.statements.map(s => s.transform(resolveTransform, outerMeta));
 			return [node, false];
-
-		} */else if (node.meta.type === 'identifier') {
+		} else if (node.meta.type === 'identifier') {
 			if (outerMeta.args.includes(node.canonical)) {
 				node.meta.argument = true;
 			} else if (outerMeta.locals.includes(node.canonical)) {
@@ -229,7 +241,9 @@ DBN.prototype.run = function(source, callback) {
 					const name = node.args[0].canonical;
 
 					if (!outerMeta.unbound.includes(name)) {
-						if (!outerMeta.locals.includes(name)) {
+						if (outerMeta.args.includes(name)) {
+							node.args[0].meta.argument = true;
+						} else if (!outerMeta.locals.includes(name)) {
 							outerMeta.locals.push(name);
 							node.args[0].meta.bound = true;
 						}
