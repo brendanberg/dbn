@@ -1,0 +1,14 @@
+Repeat X 0 100
+{
+    Smaller? X 50
+    {
+        Pen (X * 2)
+    }
+
+    NotSmaller? X 50
+    {
+        Pen ((100 - X) * 2)
+    }
+
+    Line 0 X 100 X
+}

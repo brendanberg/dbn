@@ -1,0 +1,24 @@
+Paper 70
+Pen 20
+
+Set top 60
+Set bottom 10
+Set left 10
+Set right 70
+
+Line left bottom left top
+Line left bottom right bottom
+Line right bottom right top
+Line right top left top
+
+Pen 30
+
+Set top 90
+Set bottom 50
+Set left 60
+Set right 90
+
+Line left bottom left top
+Line left bottom right bottom
+Line right bottom right top
+Line right top left top

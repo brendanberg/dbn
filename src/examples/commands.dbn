@@ -1,0 +1,17 @@
+Paper 75
+Pen 40
+
+Command Rectangle x0 y0 x1 y1
+{
+    Line x0 y0 x1 y0
+    Line x0 y0 x0 y1
+    Line x0 y1 x1 y1
+    Line x1 y0 x1 y1
+}
+
+Repeat N 0 10
+{
+    Set SW (30 - N * 2)
+    Set NE (70 + N * 2)
+    Rectangle SW SW NE NE
+}
