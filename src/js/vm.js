@@ -647,7 +647,6 @@ VM.prototype.run = function() {
 				//
 				// this.sp = this.fp;
 				// this.fp = this.callStack[this.sp];
-
 				this.fp = this.callStack[--this.sp];
 				this.ip = this.callStack[--this.sp];
 				break;
@@ -685,6 +684,7 @@ VM.prototype.run = function() {
 
 	if (this.ep !== 0) {
 		console.error('the program left values on the stack');
+		//console.log(this.expressionStack.slice(0, this.ep));
 		return INTERPRET_RESULT_RUNTIME_ERROR;
 	} else {
 		return INTERPRET_RESULT_OK;

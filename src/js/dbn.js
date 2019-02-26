@@ -184,11 +184,25 @@ DBN.prototype.run = function(source, callback) {
 			node.meta.commands = commands
 				.map(cmd => [cmd.name.canonical, cmd.args.length])
 				.reduce((map, elt) => Object.assign({[elt[0]]: [elt[1]]}, map), outerCommands);
-			node.meta.numbers = numbers.map(num => [num.name.canonical, [num.args.length]])
+			node.meta.numbers = numbers.map(num => [num.name.canonical, {
+					arity: [num.args.length],
+					unbound: []
+				}])
 				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), outerNumbers);
 
 			commands = commands.map(c => c.transform(resolveTransform, node.meta));
 			numbers = numbers.map(n => n.transform(resolveTransform, node.meta));
+
+			node.meta.commandUnbound = commands
+				.map(cmd => [cmd.name.canonical, cmd.meta.unbound])
+				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), {});
+
+			for (let num of numbers) {
+				Array.prototype.push.apply(
+					node.meta.numbers[num.name.canonical].unbound,
+					num.meta.unbound
+				);
+			}
 
 			node.statements = node.statements.filter(s =>
 					s.meta.type !== 'command' && s.meta.type !== 'number')
@@ -200,20 +214,21 @@ DBN.prototype.run = function(source, callback) {
 		} else if (node.meta.type === 'loop') {
 			// If we encounter a `loop` node, push the loop iterator variable
 			// name into locals and recursively descend into each statement
-			const name = node.iterator.canonical;
+			if (node.iterator && node.start && node.stop) {
+				const name = node.iterator.canonical;
 
-			if (!outerMeta.unbound.includes(name)) {
-				if (outerMeta.args.includes(name)) {
-					node.iterator.meta.argument = true;
-				} else if (!outerMeta.locals.includes(name)) {
-					outerMeta.locals.push(name);
-					node.iterator.meta.bound = true;
+				if (!outerMeta.unbound.includes(name)) {
+					if (outerMeta.args.includes(name)) {
+						node.iterator.meta.argument = true;
+					} else if (!outerMeta.locals.includes(name)) {
+						outerMeta.locals.push(name);
+						node.iterator.meta.bound = true;
+					}
 				}
+
+				node.start = node.start.transform(resolveTransform, outerMeta);
+				node.stop = node.stop.transform(resolveTransform, outerMeta);
 			}
-
-			node.start = node.start.transform(resolveTransform, outerMeta);
-			node.stop = node.stop.transform(resolveTransform, outerMeta);
-
 			node.statements = node.statements.map(s => s.transform(resolveTransform, outerMeta));
 			return [node, false];
 
@@ -243,8 +258,10 @@ DBN.prototype.run = function(source, callback) {
 					if (!outerMeta.unbound.includes(name)) {
 						if (outerMeta.args.includes(name)) {
 							node.args[0].meta.argument = true;
-						} else if (!outerMeta.locals.includes(name)) {
-							outerMeta.locals.push(name);
+						} else {
+							if (!outerMeta.locals.includes(name)) {
+								outerMeta.locals.push(name);
+							}
 							node.args[0].meta.bound = true;
 						}
 					}
@@ -277,51 +294,55 @@ DBN.prototype.run = function(source, callback) {
 				}
 
 				node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
+				node.meta.command = outerMeta.commands[node.canonical];
+
+				const unbound = outerMeta.commandUnbound[node.canonical];
+
+				if (unbound) {
+					for (let name of unbound) {
+						if (!outerMeta.unbound.includes(name)) {
+							outerMeta.unbound.push(name);
+						}
+					}
+				}
+
 				return [node, false];
 			}
 		} else if (node.meta.type === 'generator') {
-			if (!(outerMeta.numbers.hasOwnProperty(node.canonical) &&
-					outerMeta.numbers[node.canonical] === node.args.length)) {
+			console.log('visiting generator ' + node.canonical);
+			if (!outerMeta.numbers.hasOwnProperty(node.canonical)) {
 				throw {
-					message: 'mismatched arity',
+					message: 'could not find a definition for "' + node.canonical + '"',
+					start: node.meta.start,
+					end: node.meta.end
+				};
+			} else if (!outerMeta.numbers[node.canonical].arity.includes(node.args.length)) {
+				const arity = outerMeta.numbers[node.canonical].arity[0];
+
+				throw {
+					message: ('"' + node.canonical + '" commands require '
+						+ arity + ' parameter' + ((arity === 1) ? '' : 's')
+						+ '; found ' + node.args.length),
 					start: node.meta.start,
 					end: node.meta.end
 				};
 			}
 
 			node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
-			return [node, false];
-		} else {
-			return [node, true];
-		}
-	};
+			node.meta.unbound = outerMeta.numbers[node.canonical].unbound;
+			console.log(node.meta.unbound);
 
-/*	const argumentTransform = node => {
-		if (node.meta.type === 'command' || node.meta.type === 'number') {
-			// TODO: Push a scope?
-			const args = node.args.map(arg => arg.canonical);
-
-			const scanArguments = n => {
-				if (n.meta.type === 'identifier') {
-					if (args.includes(n.canonical)) {
-						n.meta.argument = true;
-					}
-
-					return [n, false];
-				} else if (n.meta.type === 'command' || n.meta.type === 'number') {
-					return [n.transform(argumentTransform), false];
-				} else {
-					return [n, true];
+			for (let name of node.meta.unbound) {
+				if (!outerMeta.unbound.includes(name)) {
+					outerMeta.unbound.push(name);
 				}
-			};
+			}
 
-			node.statements = node.statements.map(s => s.transform(scanArguments));
 			return [node, false];
 		} else {
 			return [node, true];
 		}
 	};
-*/
 
 	// TODO: This should happen after definition reordering
 	const bindTransform = node => {
@@ -408,7 +429,7 @@ DBN.prototype.run = function(source, callback) {
 
 					//n.statements.map(s => s.transform(orderingTransform));//orderingHelper));
 					
-					for (let a of loop.locals) {
+					for (let a of loop.meta.locals) {
 						locals[a] = true;
 					}
 
@@ -566,12 +587,12 @@ DBN.prototype.run = function(source, callback) {
 		non_interaction: true,
 		value: timer.elapsed() / 1000
 	});
-/*
+
 	this.timer.start();
 	this.vm.init(chunk);
 	this.running = true;
 	this.step();
-*/	
+	
 	if (callback && typeof(callback) === 'function') {
 		this.callback = callback;
 	}

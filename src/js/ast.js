@@ -1,5 +1,6 @@
 import * as Op from './opcodes';
 import assemble from './assemble';
+import emitBuiltins from './builtins';
 
 let currentSymbol = 0;
 
@@ -10,7 +11,7 @@ const AST = {
 			return name.toLowerCase();
 		},
 		gensym: function() {
-			return '$' + (currentSymbol++).toString(36).toUpperCase();
+			return '$_AST_JS_' + (currentSymbol++).toString(36).toUpperCase();
 		}
 	},
 
@@ -214,12 +215,12 @@ const AST = {
 	},
 
 	connectors: {
-		'mouse': [1],
-		'key': [1],
-		'time': [1],
-		'net': [1],
-		'array': [1],
-		'abs': [1]
+		'mouse': {arity: [1], unbound: []},
+		'key': {arity: [1], unbound: []},
+		'time': {arity: [1], unbound: []},
+		'net': {arity: [1], unbound: []},
+		'array': {arity: [1], unbound: []},
+		'abs': {arity: [1], unbound: []}
 	},
 	
 	commands: {
@@ -227,7 +228,8 @@ const AST = {
 		'pen': [1, 3],
 		'set': [2],
 		'line': [4],
-		'field': [5]
+		'field': [5],
+		'value': [1]
 	},
 
 	Program: function (statements, meta) {
@@ -239,7 +241,6 @@ const AST = {
 				unbound: [],
 			}, meta || {});
 
-		//this.locals = [];
 		//this.defns = [];
 		//this.outerDefns = [];
 		this.args = [];
@@ -251,7 +252,6 @@ const AST = {
 	Block: function(statements, meta) {
 		this.meta = Object.assign({type: 'block'}, meta || {});
 
-		//this.locals = [];
 		//this.defns = [];
 		this.outerDefns = [];
 		this.statements = statements;
@@ -260,7 +260,6 @@ const AST = {
 	Loop: function(name, start, stop, statements, meta) {
 		// TODO: Ensure start and stop are scalar value types.
 		this.meta = Object.assign({type: 'loop', inner: true}, meta || {});
-		//this.locals = [];
 		this.iterator = name;
 		this.start = start;
 		this.stop = stop;
@@ -270,7 +269,6 @@ const AST = {
 	Condition: function(predicate, statements, meta) {
 		this.meta = Object.assign({type: 'condition'}, meta || {});
 		this.predicate = predicate;
-		//this.locals = [];
 		this.statements = statements;
 	},
 
@@ -299,7 +297,6 @@ const AST = {
 				args: []
 			}, meta || {});
 		this.name = name;
-		//this.locals = [];
 		//this.defns = [];
 		//this.outerDefns = [];
 		this.args = idents.map(x => {
@@ -317,7 +314,6 @@ const AST = {
 				locals: []
 			}, meta || {});
 		this.name = name;
-		//this.locals = [];
 		//this.defns = [];
 		//this.outerDefns = [];
 		this.args = idents.map(x => {
@@ -682,7 +678,7 @@ AST.Program.prototype.emit = function(ctx) {
 
 	const range = n => Array(n).fill(0).map((x, y) => y);
 
-	let program = [Op.STACK_ALLOC, this.meta.locals.length]
+	return [Op.STACK_ALLOC, this.meta.locals.length]
 		.concat(this.statements.flatMap(s => s.emit()))
 		.concat([
 			Op.STACK_FREE, this.meta.locals.length,
@@ -699,403 +695,9 @@ AST.Program.prototype.emit = function(ctx) {
 					Op.INVOKE, fn.length, fn.name,
 					Op.RETURN
 				]);
-		}));
+		}))
+		.concat(emitBuiltins());
 
-	const _abs_a = AST.tools.gensym();
-
-	const _line_a = AST.tools.gensym();
-	const _line_b = AST.tools.gensym();
-	const _line_c = AST.tools.gensym();
-	const _line_d = AST.tools.gensym();
-	const _line_e = AST.tools.gensym();
-	const _line_f = AST.tools.gensym();
-	
-	const _plotlow = AST.tools.gensym();
-	const _plotlow_a = AST.tools.gensym();
-	const _plotlow_b = AST.tools.gensym();
-	const _plotlow_c = AST.tools.gensym();
-	const _plotlow_d = AST.tools.gensym();
-	const _plotlow_e = AST.tools.gensym();
-	const _plotlow_f = AST.tools.gensym();
-	
-	const _plothigh = AST.tools.gensym();
-	const _plothigh_a = AST.tools.gensym();
-	const _plothigh_b = AST.tools.gensym();
-	const _plothigh_c = AST.tools.gensym();
-	const _plothigh_d = AST.tools.gensym();
-	const _plothigh_e = AST.tools.gensym();
-	const _plothigh_f = AST.tools.gensym();
-
-	const _field_a = AST.tools.gensym();
-	const _field_b = AST.tools.gensym();
-	const _field_c = AST.tools.gensym();
-	const _field_d = AST.tools.gensym();
-	const _field_e = AST.tools.gensym();
-	const _field_f = AST.tools.gensym();
-
-	return program.concat([
-		Op.LOCATION, 0, 0,
-		Op.LABEL, 'abs',
-		Op.STACK_ALLOC, 0,
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _abs_a,
-		Op.STACK_FREE, 0,
-		Op.RETURN,
-		Op.LABEL, _abs_a,
-		Op.NEGATE,
-		Op.STACK_FREE, 0,
-		Op.RETURN,
-	//	-------------------------------
-		Op.LABEL, 'field',
-		Op.STACK_ALLOC, 2,
-		Op.SET_ARGUMENT, 4,
-		Op.SET_ARGUMENT, 3,
-		Op.SET_ARGUMENT, 2,
-		Op.SET_ARGUMENT, 1,
-		Op.SET_ARGUMENT, 0,
-		Op.CONSTANT, 255,
-		Op.GET_ARGUMENT, 4,
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _field_a,
-		Op.DUPLICATE,
-		Op.CONSTANT, 100,
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _field_b,
-		Op.JUMP, _field_c,
-		Op.LABEL, _field_a,
-		Op.POP,
-		Op.CONSTANT, 0,
-		Op.JUMP, _field_c,
-		Op.LABEL, _field_b,
-		Op.POP,
-		Op.CONSTANT, 100,
-		Op.LABEL, _field_c,
-		Op.CONSTANT, 255,
-		Op.MULTIPLY,
-		Op.CONSTANT, 100,
-		Op.DIVIDE,
-		Op.SUBTRACT,
-		Op.PACK_GRAY,
-		Op.SET_PEN_COLOR,
-		Op.GET_ARGUMENT, 0,
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 0,
-		Op.GET_ARGUMENT, 2,
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 1,
-		Op.SUBTRACT,
-		Op.LABEL, _field_d,
-		Op.GET_LOCAL, 0,
-		Op.GET_ARGUMENT, 1,
-		Op.GET_LOCAL, 0,
-		Op.GET_ARGUMENT, 3,
-		Op.STACK_ALLOC, 4,
-		Op.CALL, 'line',
-		Op.STACK_FREE, 4,
-		Op.POP,
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _field_e,
-		Op.GET_LOCAL, 1,
-		Op.GET_LOCAL, 0,
-		Op.DUPLICATE,
-		Op.CONSTANT, 1,
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 0,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.JUMP, _field_f,
-		Op.LABEL, _field_e,
-		Op.GET_LOCAL, 0,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 0,
-		Op.GET_LOCAL, 1,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.LABEL, _field_f,
-		Op.JUMP_IF_NEGATIVE, _field_d,
-		Op.POP,
-		Op.STACK_FREE, 2,
-		Op.CONSTANT, 0,
-		Op.RETURN,
-	//	-------------------------------
-		Op.LABEL, 'line',
-		Op.STACK_ALLOC, 2,
-		Op.ARGUMENT, 'x0',
-		Op.ARGUMENT, 'y0',
-		Op.ARGUMENT, 'x1',
-		Op.ARGUMENT, 'y1',
-		Op.SET_ARGUMENT, 'y1', // 3
-		Op.SET_ARGUMENT, 'x1', // 2
-		Op.SET_ARGUMENT, 'y0', // 1
-		Op.SET_ARGUMENT, 'x0', // 0
-
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'y0',
-		Op.SUBTRACT,
-		Op.CALL, 'abs',
-		Op.SET_LOCAL, 'magY', // 0
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.SUBTRACT,
-		Op.CALL, 'abs',
-		Op.SET_LOCAL, 'magX', // 1
-
-		Op.GET_LOCAL, 'magX',
-		Op.GET_LOCAL, 'magY',
-		Op.SUBTRACT,
-		Op.JUMP_IF_NEGATIVE, _line_a,
-
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.SUBTRACT,
-		Op.JUMP_IF_NEGATIVE, _line_b,
-		Op.GET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'y0',
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'y1',
-		Op.JUMP, _line_c,
-		Op.LABEL, _line_b,
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'y0',
-		Op.LABEL, _line_c,
-		Op.STACK_ALLOC, 4,
-		Op.CALL, _plotlow,
-		Op.STACK_FREE, 4,
-		Op.POP,
-		Op.JUMP, _line_f,
-
-		Op.LABEL, _line_a,
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'y0',
-		Op.SUBTRACT,
-		Op.JUMP_IF_NEGATIVE, _line_d,
-		Op.GET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'y0',
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'y1',
-		Op.JUMP, _line_e,
-		Op.LABEL, _line_d,
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'y0',
-		Op.LABEL, _line_e,
-		Op.STACK_ALLOC, 4,
-		Op.CALL, _plothigh,
-		Op.STACK_FREE, 4,
-		Op.POP,
-
-		Op.LABEL, _line_f,
-		Op.STACK_FREE, 2,
-		Op.CONSTANT, 0,
-		Op.RETURN,
-	//	-------------------------------
-		Op.LABEL, _plotlow,
-		Op.STACK_ALLOC, 7,
-		Op.ARGUMENT, 'x0',
-		Op.ARGUMENT, 'y0',
-		Op.ARGUMENT, 'x1',
-		Op.ARGUMENT, 'y1',
-		Op.SET_ARGUMENT, 'y1',
-		Op.SET_ARGUMENT, 'x1',
-		Op.SET_ARGUMENT, 'y0',
-		Op.SET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dx',
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'y0',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dy',
-		Op.CONSTANT, 1,
-		Op.SET_LOCAL, 'yi',
-		Op.GET_LOCAL, 'dy',
-		Op.CONSTANT, 0,
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _plotlow_a,
-		Op.CONSTANT, -1,
-		Op.SET_LOCAL, 'yi',
-		Op.CONSTANT, 0,
-		Op.GET_LOCAL, 'dy',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dy',
-		Op.LABEL, _plotlow_a,
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dy',
-		Op.MULTIPLY,
-		Op.GET_LOCAL, 'dx',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'd',
-		Op.GET_ARGUMENT, 'y0',
-		Op.SET_LOCAL, 'y',
-		Op.GET_ARGUMENT, 'x0',
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 'x',
-		Op.GET_ARGUMENT, 'x1',
-		Op.DUPLICATE,
-		Op.SET_LOCAL, _plotlow_f,
-		Op.SUBTRACT,
-		Op.LABEL, _plotlow_b,
-		Op.GET_LOCAL, 'x',
-		Op.GET_LOCAL, 'y',
-		Op.FILL_PIXEL,
-		Op.CONSTANT, 0,
-		Op.GET_LOCAL, 'd',
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _plotlow_c,
-		Op.GET_LOCAL, 'y',
-		Op.GET_LOCAL, 'yi',
-		Op.ADD,
-		Op.SET_LOCAL, 'y',
-		Op.GET_LOCAL, 'd',
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dx',
-		Op.MULTIPLY,
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'd',
-		Op.LABEL, _plotlow_c,
-		Op.GET_LOCAL, 'd',
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dy',
-		Op.MULTIPLY,
-		Op.ADD,
-		Op.SET_LOCAL, 'd',
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _plotlow_d,
-		Op.GET_LOCAL, _plotlow_f,
-		Op.GET_LOCAL, 'x',
-		Op.DUPLICATE,
-		Op.CONSTANT, 1,
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'x',
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.JUMP, _plotlow_e,
-		Op.LABEL, _plotlow_d,
-		Op.GET_LOCAL, 'x',
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 'x',
-		Op.GET_LOCAL, _plotlow_f,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.LABEL, _plotlow_e,
-		Op.JUMP_IF_NEGATIVE, _plotlow_b,
-		Op.POP,
-		Op.STACK_FREE, 7,
-		Op.CONSTANT, 0,
-		Op.RETURN,
-	//	-------------------------------
-		Op.LABEL, _plothigh,
-		Op.STACK_ALLOC, 7,
-		Op.ARGUMENT, 'x0',
-		Op.ARGUMENT, 'y0',
-		Op.ARGUMENT, 'x1',
-		Op.ARGUMENT, 'y1',
-		Op.SET_ARGUMENT, 'y1',
-		Op.SET_ARGUMENT, 'x1',
-		Op.SET_ARGUMENT, 'y0',
-		Op.SET_ARGUMENT, 'x0',
-		Op.GET_ARGUMENT, 'x1',
-		Op.GET_ARGUMENT, 'x0',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dx',
-		Op.GET_ARGUMENT, 'y1',
-		Op.GET_ARGUMENT, 'y0',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dy',
-		Op.CONSTANT, 1,
-		Op.SET_LOCAL, 'xi',
-		Op.GET_LOCAL, 'dx',
-		Op.CONSTANT, 0,
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _plothigh_a,
-		Op.CONSTANT, -1,
-		Op.SET_LOCAL, 'xi',
-		Op.CONSTANT, 0,
-		Op.GET_LOCAL, 'dx',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dx',
-		Op.LABEL, _plothigh_a,
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dx',
-		Op.MULTIPLY,
-		Op.GET_LOCAL, 'dy',
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'd',
-		Op.GET_ARGUMENT, 'x0',
-		Op.SET_LOCAL, 'x',
-		Op.GET_ARGUMENT, 'y0',
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 'y',
-		Op.GET_ARGUMENT, 'y1',
-		Op.DUPLICATE,
-		Op.SET_LOCAL, _plothigh_f,
-		Op.SUBTRACT,
-		Op.LABEL, _plothigh_b,
-		Op.GET_LOCAL, 'x',
-		Op.GET_LOCAL, 'y',
-		Op.FILL_PIXEL,
-		Op.CONSTANT, 0,
-		Op.GET_LOCAL, 'd',
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _plothigh_c,
-		Op.GET_LOCAL, 'x',
-		Op.GET_LOCAL, 'xi',
-		Op.ADD,
-		Op.SET_LOCAL, 'x',
-		Op.GET_LOCAL, 'd',
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dy',
-		Op.MULTIPLY,
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'd',
-		Op.LABEL, _plothigh_c,
-		Op.GET_LOCAL, 'd',
-		Op.CONSTANT, 2,
-		Op.GET_LOCAL, 'dx',
-		Op.MULTIPLY,
-		Op.ADD,
-		Op.SET_LOCAL, 'd',
-		Op.DUPLICATE,
-		Op.JUMP_IF_NEGATIVE, _plothigh_d,
-		Op.GET_LOCAL, _plothigh_f,
-		Op.GET_LOCAL, 'y',
-		Op.DUPLICATE,
-		Op.CONSTANT, 1,
-		Op.SUBTRACT,
-		Op.SET_LOCAL, 'y',
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.JUMP, _plothigh_e,
-		Op.LABEL, _plothigh_d,
-		Op.GET_LOCAL, 'y',
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.DUPLICATE,
-		Op.SET_LOCAL, 'y',
-		Op.GET_LOCAL, _plothigh_f,
-		Op.CONSTANT, 1,
-		Op.ADD,
-		Op.SUBTRACT,
-		Op.LABEL, _plothigh_e,
-		Op.JUMP_IF_NEGATIVE, _plothigh_b,
-		Op.POP,
-		Op.STACK_FREE, 7,
-		Op.CONSTANT, 0,
-		Op.RETURN
-	]);
 };
 
 AST.Block.prototype.emit = function() {
@@ -1110,7 +712,7 @@ AST.Loop.prototype.emit = function() {
 
 	// Special case for infinite loops!
 	if (this.iterator === null && this.start === null && this.stop === null) {
-		let assem = [Op.LABEL, _body]
+		return [Op.LABEL, _body]
 			.concat(this.statements.flatMap(s => s.emit()))
 			.concat([Op.LOCATION, start, end])
 			.concat(this.meta.inner ? [Op.REDRAW] : [])
@@ -1124,7 +726,7 @@ AST.Loop.prototype.emit = function() {
 	const _increment = AST.tools.gensym();
 	const _break = AST.tools.gensym();
 
-	let assem = this.stop.emit().concat([
+	return this.stop.emit().concat([
 		Op.LOCATION, start, end,
 		Op.DUPLICATE,
 	]).concat(this.start.emit()).concat([
@@ -1132,6 +734,7 @@ AST.Loop.prototype.emit = function() {
 		Op.DUPLICATE,
 		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
+		Op.DUPLICATE,
 		Op.LABEL, _body,
 	]).concat(this.statements.flatMap(s => s.emit())).concat([
 		Op.LOCATION, start, end,
@@ -1145,6 +748,7 @@ AST.Loop.prototype.emit = function() {
 		Op.DUPLICATE,
 		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
+		Op.DUPLICATE,
 	]).concat(this.meta.inner ? [Op.REDRAW] : []).concat([
 		Op.JUMP, _body,
 
@@ -1156,6 +760,7 @@ AST.Loop.prototype.emit = function() {
 		Op.DUPLICATE,
 		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
+		Op.DUPLICATE,
 	]).concat(this.meta.inner ? [Op.REDRAW] : []).concat([
 		Op.JUMP, _body,
 
@@ -1163,8 +768,6 @@ AST.Loop.prototype.emit = function() {
 		Op.POP,
 		Op.POP,
 	]);
-	console.log(assem);
-	return assem;
 }
 
 AST.Condition.prototype.emit = function() {
@@ -1180,25 +783,21 @@ AST.Condition.prototype.emit = function() {
 	if (this.predicate.meta.type === 'not') {
 		const bodylabel = AST.tools.gensym();
 
-		let foo = /*[Op.LOCATION, start, end]
-			.concat*/(this.predicate.emit())
+		return [Op.LOCATION, start, end]
+			.concat(this.predicate.emit())
 			.concat([
 				bodylabel,
+				Op.LOCATION, start, end,
 				Op.JUMP, endlabel,
 				Op.LABEL, bodylabel])
 			.concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LABEL, endlabel]);
-
-		console.log(foo);
-		return foo
+			.concat([Op.LOCATION, start, end, Op.LABEL, endlabel]);
 	} else {
-		let foo = this.predicate.emit()
+		return [Op.LOCATION, start, end]
+			.concat(this.predicate.emit())
 			.concat([endlabel])
 			.concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LABEL, endlabel]);
-
-		console.log(foo);
-		return foo
+			.concat([Op.LOCATION, start, end, Op.LABEL, endlabel]);
 	}
 };
 
@@ -1252,20 +851,18 @@ AST.Number.prototype.emit = function(ctx) {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	const args = this.args.flatMap(a => [Op.ARGUMENT, a.canonical])
-		.concat(this.args.slice(0).reverse()
-			.flatMap(a => [Op.SET_ARGUMENT, a.canonical])
-		);
-
 	return ([
 		Op.LOCATION, start, end,
 		Op.LABEL, this.name.canonical,
-		Op.STACK_ALLOC, this.meta.locals.length,
-	]).concat(args).concat(this.statements.flatMap(s => s.emit())).concat([
+		Op.STACK_ALLOC, this.meta.locals.length])
+	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
+	.concat(this.meta.unbound.flatMap(a => [Op.ARGUMENT, a]))
+	.concat(this.args.slice(0).reverse().flatMap(a => [Op.SET_ARGUMENT, a.canonical]))
+	.concat(this.statements.flatMap(s => s.emit()))
+	.concat([
 		Op.LOCATION, start, end,
 		Op.STACK_FREE, this.meta.locals.length,
-		Op.RETURN
-	])
+		Op.RETURN])
 	.concat(this.definitions.flatMap(d => d.emit()));
 };
 
@@ -1448,13 +1045,16 @@ AST.Generator.prototype.emit = function(ctx) {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	return this.args.flatMap(a => a.emit())
+	return [Op.LOCATION, start, end]
+		.concat(this.meta.unbound.flatMap(id => [Op.SET_OUTER, id]))
+		.concat(this.args.flatMap(a => a.emit()))
 		.concat([
 			Op.LOCATION, start, end,
 			Op.STACK_ALLOC, this.args.length,
 			Op.CALL, this.canonical,
 			Op.STACK_FREE, this.args.length
-		]);
+		])
+		.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.GET_OUTER, id]));
 };
 
 AST.Identifier.prototype.emit = function() {
