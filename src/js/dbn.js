@@ -181,28 +181,35 @@ DBN.prototype.run = function(source, callback) {
 			let outerCommands = outerMeta ? outerMeta.commands : AST.commands;
 			let outerNumbers = outerMeta ? outerMeta.numbers : AST.connectors;
 
-			node.meta.commands = commands
-				.map(cmd => [cmd.name.canonical, cmd.args.length])
-				.reduce((map, elt) => Object.assign({[elt[0]]: [elt[1]]}, map), outerCommands);
+			node.meta.commands = commands.map(cmd => [cmd.name.canonical, {
+					arity: [cmd.args.length],
+					unbound: []
+				}])
+				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), outerCommands);
+
 			node.meta.numbers = numbers.map(num => [num.name.canonical, {
 					arity: [num.args.length],
 					unbound: []
 				}])
 				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), outerNumbers);
 
-			commands = commands.map(c => c.transform(resolveTransform, node.meta));
-			numbers = numbers.map(n => n.transform(resolveTransform, node.meta));
-
-			node.meta.commandUnbound = commands
-				.map(cmd => [cmd.name.canonical, cmd.meta.unbound])
-				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), {});
-
-			for (let num of numbers) {
+			commands = commands.map(c => {
+				c = c.transform(resolveTransform, node.meta);
 				Array.prototype.push.apply(
-					node.meta.numbers[num.name.canonical].unbound,
-					num.meta.unbound
+					node.meta.commands[c.name.canonical].unbound,
+					c.meta.unbound
 				);
-			}
+				return c;
+			});
+
+			numbers = numbers.map(n => {
+				n = n.transform(resolveTransform, node.meta);
+				Array.prototype.push.apply(
+					node.meta.numbers[n.name.canonical].unbound,
+					n.meta.unbound
+				);
+				return n;
+			});
 
 			node.statements = node.statements.filter(s =>
 					s.meta.type !== 'command' && s.meta.type !== 'number')
@@ -268,6 +275,7 @@ DBN.prototype.run = function(source, callback) {
 				} else {
 					// Handle a vector or generator
 					node.args[0] = node.args[0].transform(resolveTransform, outerMeta);
+					node.args[0].meta.lvalue = true;
 				}
 
 				node.args = node.args.slice(0, 1).concat(node.args.slice(1)
@@ -281,8 +289,8 @@ DBN.prototype.run = function(source, callback) {
 						start: node.meta.start,
 						end: node.meta.end
 					};
-				} else if (!outerMeta.commands[node.canonical].includes(node.args.length)) {
-					const arity = outerMeta.commands[node.canonical][0];
+				} else if (!outerMeta.commands[node.canonical].arity.includes(node.args.length)) {
+					const arity = outerMeta.commands[node.canonical].arity[0];
 						
 					throw {
 						message: ('"' + node.canonical + '" commands require '
@@ -294,22 +302,17 @@ DBN.prototype.run = function(source, callback) {
 				}
 
 				node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
-				node.meta.command = outerMeta.commands[node.canonical];
+				node.meta.unbound = outerMeta.commands[node.canonical].unbound;
 
-				const unbound = outerMeta.commandUnbound[node.canonical];
-
-				if (unbound) {
-					for (let name of unbound) {
-						if (!outerMeta.unbound.includes(name)) {
-							outerMeta.unbound.push(name);
-						}
+				for (let name of node.meta.unbound) {
+					if (!outerMeta.unbound.includes(name)) {
+						outerMeta.unbound.push(name);
 					}
 				}
 
 				return [node, false];
 			}
-		} else if (node.meta.type === 'generator') {
-			console.log('visiting generator ' + node.canonical);
+		} else if (node.meta.type === 'connector') {
 			if (!outerMeta.numbers.hasOwnProperty(node.canonical)) {
 				throw {
 					message: 'could not find a definition for "' + node.canonical + '"',
@@ -320,7 +323,7 @@ DBN.prototype.run = function(source, callback) {
 				const arity = outerMeta.numbers[node.canonical].arity[0];
 
 				throw {
-					message: ('"' + node.canonical + '" commands require '
+					message: ('"' + node.canonical + '" requires '
 						+ arity + ' parameter' + ((arity === 1) ? '' : 's')
 						+ '; found ' + node.args.length),
 					start: node.meta.start,
@@ -330,7 +333,6 @@ DBN.prototype.run = function(source, callback) {
 
 			node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
 			node.meta.unbound = outerMeta.numbers[node.canonical].unbound;
-			console.log(node.meta.unbound);
 
 			for (let name of node.meta.unbound) {
 				if (!outerMeta.unbound.includes(name)) {
@@ -344,193 +346,9 @@ DBN.prototype.run = function(source, callback) {
 		}
 	};
 
-	// TODO: This should happen after definition reordering
-	const bindTransform = node => {
-		const locals = {};
-		const unbound = [];
-
-		const resolveLocals = n => {
-			if (n.meta.type === 'statement') { 
-				if (n.canonical === 'set') {
-					if (!unbound.includes(n.args[0].canonical)) {
-						locals[n.args[0].canonical] = true;
-						n.args[0].meta.bound = true;
-					}
-				}
-
-				n.args.map(arg => arg.transform(resolveLocals));
-				return [n, false];
-			} else if (n.meta.type === 'loop' && n.iterator) {
-				locals[n.iterator.canonical] = true;
-				console.log('before resolving loop', locals);
-				n.statements.map(s => s.transform(resolveLocals));
-				console.log('after resolving loop', locals);
-				return [n, false];
-			} else if (n.meta.type === 'identifier') {
-				if (!(n.meta.argument || locals.hasOwnProperty(n.canonical))) {
-					if (!unbound.includes(n.canonical)) {
-						unbound.push(n.canonical);
-					}
-				} else if (!unbound.includes(n.canonical)) {
-					// TODO: Test whether this works better as locals.hasOwnProperty
-					n.meta.bound = true;
-				}
-				return [n, false];
-			} else if (n.meta.type === 'command' || n.meta.type === 'number') {
-				// By recurring with bindTransform, you get a new context for
-				// local and unbound variables.
-				return [n.transform(bindTransform), false];
-			} else {
-				return [n, true];
-			}
-		};
-
-		if (node.meta.type === 'program' || node.meta.type === 'command' || node.meta.type === 'number') {
-			node.statements = node.statements.map(st => st.transform(resolveLocals));
-			node.meta.unbound = unbound;
-			return [node, false];
-		} else {
-			return [node, true];
-		}
-	};
-
-	const orderingTransform = node => {
-		if (node.meta.type === 'program' || node.meta.type === 'command' || node.meta.type === 'number' || node.meta.type === 'loop') {
-			const statements = [];
-			const defns = [];
-			const locals = {};
-
-			//for (let i = 0, len = node.statements.length; i < len; i++) {
-			//	let stmnt = node.statements[i];
-
-			const orderingHelper = n => {
-				if (n.meta.type === 'command' || n.meta.type === 'number') {
-					let definition = n.transform(orderingTransform);
-					defns.push(definition);
-					definition.outerDefns = defns;
-				} else if (n.meta.type === 'statement' && n.canonical === 'set'
-						&& n.args[0].meta.type === 'identifier'
-						&& (n.args[0].meta.argument === false || n.args[0].meta.bound === true)) {
-
-					locals[n.args[0].canonical] = true;
-					statements.push(n);
-				} else if (n.meta.type === 'loop') {
-					let loop = n.transform(orderingTransform);
-
-					if (n.iterator) {
-						locals[n.iterator.canonical] = true;
-						locals[n.iterator.canonical + '$0'] = true;
-					}
-
-					let inners = n.statements.filter(s => {
-						return (s.meta.type === 'loop'
-								|| s.meta.type === 'statement' && s.canonical === 'paper');
-					});
-
-					//n.statements.map(s => s.transform(orderingTransform));//orderingHelper));
-					
-					for (let a of loop.meta.locals) {
-						locals[a] = true;
-					}
-
-					statements.push(loop);
-				} else if (n.meta.type === 'condition') {
-					//n.statements.map(s => s.transform(orderingTransform));
-					let condition = n.transform(orderingTransform);
-
-					for (let a of condition.locals) {
-						locals[a] = true;
-					}
-
-					statements.push(n);
-				} else {
-					statements.push(n);
-				}
-
-				return [n, false];
-			};
-
-			node.statements.map(s => s.transform(orderingHelper));
-
-			node.locals = Object.keys(locals);
-			node.statements = statements;
-			node.defns = defns;
-			return [node, false];
-		} else {
-			return [node, true];
-		}
-	};
-
-	const resolveFunctions = node => {
-		// TODO: I think this only resolves the top level.
-		// TODO: We also need to resolve connectors
-		if (node.meta.type === 'program' || node.meta.type === 'command') {
-			console.log('resolving ' + (node.name ? node.name.canonical : 'program') + '...', node.defns);
-
-			let defns = node.defns.map(x => [x.name.canonical, x.args.length])
-				.concat(node.outerDefns.map(x => [x.name.canonical, x.args.length]))
-				.reduce((map, def) => {
-					if (map.hasOwnProperty(def[0])) {
-						map[def[0]].push(def[1]);
-					} else {
-						map[def[0]] = [def[1]];
-					}
-
-					return map;
-				}, Object.assign({}, AST.commands));
-
-			let commands = node.defns.slice(0)
-				.concat(node.outerDefns)
-				.reduce((map, cmd) =>
-					Object.assign(map, {[cmd.name.canonical]: cmd}), {});
-				// AST.commands.reduce((map, cmd) => new Command(cmd.name, ...))
-
-			const resolveHelper = n => {
-				if (n.meta.type === 'statement') {
-					if (!defns.hasOwnProperty(n.canonical)) {
-						throw {
-							message: 'could not find a command called "' + n.canonical + '"',
-							start: n.meta.start,
-							end: n.meta.end
-						};
-					} else if (!defns[n.canonical].includes(n.args.length)) {
-						let arity = defns[n.canonical][0];
-						throw {
-							message: ('"' + n.canonical + '" commands require '
-								+ arity + ' parameter' + ((arity === 1) ? '' : 's')
-								+ '; found ' + n.args.length),
-							start: n.meta.start,
-							end: n.meta.end
-						};
-					}
-					console.log('successfully bound call to ' + n.canonical);
-					n.meta.command = commands[n.canonical];
-					return [n, false];
-				} else if (n.meta.type === 'loop' || n.meta.type === 'condition') {
-					return [n, true];
-				} else if (n.meta.type === 'command' || n.meta.type === 'number') {
-					//n.outerDefns = defns;
-					return [n.transform(resolveFunctions), false];
-				} else {
-					return [n, true];
-				}// TODO: add conditions for command and number definitions
-			};
-
-			node.statements.map(s => s.transform(resolveHelper));
-			node.defns.map(d => d.transform(resolveHelper));
-			return [node, false];
-		} else {
-			return [node, true];
-		}
-	};
-
 	ast = ast.applyTransformations([
-			removeComments, commandTransform, resolveTransform]);
-			/*argumentTransform, bindTransform,
-			orderingTransform, resolveFunctions
-	]);*/
-	console.log(ast);
-
+		removeComments, commandTransform, resolveTransform
+	]);
 
 	const self = this;
 

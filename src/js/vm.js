@@ -39,19 +39,10 @@ const VM = function(canvas, w, h) {
 	this.imageData = frameCtx.createImageData(width, height);
 	this.pixelStarts = null;
 	this.pixelEnds = null;
+
+	this.timer = new Timer();
+	this.pauseInterval = 0;
 };
-
-
-const cancelAnimationFrame = window.cancelAnimationFrame ||
-	window.mozCancelAnimationFrame ||
-	null;
-
-const requestAnimationFrame = window.requestAnimationFrame ||
-	window.webkitRequestAnimationFrame ||
-	window.mozRequestAnimationFrame ||
-	window.oRequestAnimationFrame ||
-	window.msRequestAnimationFrame ||
-	null;
 
 
 VM.prototype.init = function(chunk) {
@@ -69,6 +60,9 @@ VM.prototype.init = function(chunk) {
 	// frameCtx.mozImageSmoothingEnabled = false;
 	// frameCtx.msImageSmoothingEnabled = false;
 	// frameCtx.imageSmoothingEnabled = false;
+	this.timer.stop();
+	this.timer.reset();
+	this.pauseInterval = 0;
 
 	this.pixelStarts = new Int32Array(this.frame.width * this.frame.height);
 	this.pixelEnds = new Int32Array(this.frame.width * this.frame.height);
@@ -180,7 +174,7 @@ VM.prototype.grayscale = function(r, g, b) {
 	const bY = 0.072187;
 
 	function inv_sRGB_gamma(c) {
-		v = c / 255.0;
+		const v = c / 255.0;
 		if (v <= 0.04045) {
 			return v / 12.92;
 		} else {
@@ -206,7 +200,11 @@ VM.prototype.grayscale = function(r, g, b) {
 		);
 	}
 
-	return grayscale(r, g, b);
+	if (r === g && g === b) {
+		return r;
+	} else {
+		return grayscale(r, g, b);
+	}
 };
 
 VM.prototype.writePixel = function(x, y) { // r, g, b) {
@@ -254,6 +252,17 @@ VM.prototype.fillCanvas = function() { //r, g, b) {
 VM.prototype.run = function() {
 	// Continually fetch the next instruction in the chunk's code array and
 	// execute the loop body if the instruction is not Op.HALT
+
+	// TODO: replace this with an isRunning state flag
+	if (this.timer.startTime) {
+		if (this.timer.elapsed() >= this.pauseInterval) {
+			this.timer.stop();
+			this.timer.reset();
+			this.pauseInterval = 0;
+		} else {
+			return;
+		}
+	}
 	const chunk = this.chunk;
 	const timer = new Timer();
 	timer.start();
@@ -334,40 +343,6 @@ VM.prototype.run = function() {
 				this.callStack[index] = this.exprStack[--this.ep];
 				break;
 			}
-			case Op.GET_OUTER: {
-				const offset = chunk.code[this.ip++];
-				const index = this.fp + offset + 1;
-
-				if (index < 0 || index >= this.sp) {
-					throw {
-						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
-					};
-					//return INTERPRET_RESULT_RUNTIME_ERROR;
-				}
-
-				this.callStack[index] = this.callStack[this.sp - 1];
-				this.sp--;
-				break;
-			}
-			case Op.SET_OUTER: {
-				const offset = chunk.code[this.ip++];
-				const index = this.fp + offset + 1;
-
-				if (index < 0 || index >= this.sp) {
-					throw {
-						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
-					};
-					//return INTERPRET_RESULT_RUNTIME_ERROR;
-				}
-
-				this.callStack[this.sp] = this.callStack[index];
-				this.sp++;
-				break;
-			}
 			case Op.ADD: {
 				/*
 				let b = this.exprPop();
@@ -409,7 +384,7 @@ VM.prototype.run = function() {
 				*/
 				const b = this.exprStack[--this.ep];
 				const a = this.exprStack[--this.ep];
-				this.exprStack[this.ep++] = a / b;
+				this.exprStack[this.ep++] = Math.floor(a / b);
 				break;
 			}
 			case Op.REMAINDER: {
@@ -581,6 +556,18 @@ VM.prototype.run = function() {
 				}
 
 				break;
+			}
+			case Op.PAUSE: {
+				// The PAUSE opcode breaks us out of the execution loop for
+				// a specified number of hundredths of seconds. The next
+				// animation frame will call run() again and we'll test whether
+				// the timer has reached the pauseInterval value. If not, we
+				// return early, otherwise we reset the timer and continue
+				// program execution.
+				const interval = this.exprStack[--this.ep];
+				this.pauseInterval = interval * 10;
+				this.timer.start();
+				return;
 			}
 			case Op.STACK_ALLOC: {
 				// This allocates space on the stack for arguments, which are

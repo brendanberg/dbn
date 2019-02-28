@@ -135,30 +135,6 @@ const assemble = function(label, assembly, exports) {
 				}
 				break;
 			}
-			case Op.SET_OUTER: {
-				code.push(assembly[i]);
-				let name = assembly[++i];
-				let idx = locals.indexOf(name);
-
-				if (idx === -1) {
-					throw ('encountered unknown outer variable ' + name);
-				} else {
-					code.push(idx);
-				}
-				break;
-			}
-			case Op.GET_OUTER: {
-				code.push(assembly[i]);
-				let name = assembly[++i];
-				let idx = locals.indexOf(name);
-				
-				if (idx === -1) {
-					throw ('encountered unknown outer variable ' + name);
-				} else {
-					code.push(idx);
-				}
-				break;
-			}
 			case Op.CALL:
 			case Op.JUMP:
 			case Op.JUMP_IF_NEGATIVE:
@@ -221,6 +197,7 @@ const assemble = function(label, assembly, exports) {
 			case Op.UNPACK_GRAY:
 			case Op.UNPACK_RGB:
 			case Op.UNPACK_RGBA:
+			case Op.PAUSE:
 			case Op.RETURN: {
 				// These are all zero-argument opcodes
 				code.push(assembly[i]);

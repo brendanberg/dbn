@@ -29,7 +29,8 @@ const AST = {
 		'smaller?',
 		'notsmaller?',
 		'command',
-		'number'
+		'number',
+		'pause'
 	],
 
 	controlFlow: {
@@ -224,12 +225,13 @@ const AST = {
 	},
 	
 	commands: {
-		'paper': [1, 3],
-		'pen': [1, 3],
-		'set': [2],
-		'line': [4],
-		'field': [5],
-		'value': [1]
+		'paper': {arity: [1, 3], unbound: []},
+		'pen': {arity: [1, 3], unbound: []},
+		'set': {arity: [2], unbound: []},
+		'line': {arity: [4], unbound: []},
+		'field': {arity: [5], unbound: []},
+		'value': {arity: [1], unbound: []},
+		'pause': {arity: [1], unbound: []}
 	},
 
 	Program: function (statements, meta) {
@@ -332,7 +334,7 @@ const AST = {
 	},
 
 	Generator: function (name, args, meta) {
-		this.meta = Object.assign({type: 'connector'}, meta || {});
+		this.meta = Object.assign({type: 'connector', lvalue: false}, meta || {});
 
 		this.name = name;
 		this.canonical = AST.tools.toCanonicalName(name);
@@ -352,7 +354,7 @@ const AST = {
 	},
 
 	Vector: function(vals, meta) {
-		this.meta = Object.assign({type: 'vector'}, meta || {});
+		this.meta = Object.assign({type: 'vector', lvalue: false}, meta || {});
 
 		this.values = vals;
 	},
@@ -719,7 +721,7 @@ AST.Loop.prototype.emit = function() {
 			.concat(Op.JUMP, _body);
 	}
 
-	const isArgument = (this.meta.argument === true) || (this.meta.bound === false);
+	const isArgument = this.meta.argument === true;
 	const store_iterator = isArgument ? Op.SET_ARGUMENT : Op.SET_LOCAL;
 	const load_iterator = isArgument ? Op.GET_ARGUMENT : Op.GET_LOCAL;
 
@@ -834,15 +836,17 @@ AST.Command.prototype.emit = function() {
 	return ([
 		Op.LOCATION, start, end,
 		Op.LABEL, this.name.canonical,
-		Op.STACK_ALLOC, this.meta.locals.length])
+		Op.STACK_ALLOC, this.meta.locals.length + this.meta.unbound.length])
 	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
-	.concat(this.meta.unbound.flatMap(a => [Op.ARGUMENT, a]))
 	.concat(this.args.slice(0).reverse().flatMap(a => [Op.SET_ARGUMENT, a.canonical]))
+	.concat(this.meta.unbound.slice(0).reverse().flatMap(a => [Op.SET_LOCAL, a]))
 	.concat(this.statements.flatMap(s => s.emit()))
 	.concat([
 		Op.LOCATION, start, end,
-		Op.STACK_FREE, this.meta.locals.length,
-		Op.CONSTANT, 0,
+		Op.CONSTANT, 0])
+	.concat(this.meta.unbound.slice(0).reverse().flatMap(a => [Op.GET_LOCAL, a]))
+	.concat([
+		Op.STACK_FREE, this.meta.locals.length + this.meta.unbound.length,
 		Op.RETURN])
 	.concat(this.definitions.flatMap(d => d.emit()));
 };
@@ -854,14 +858,15 @@ AST.Number.prototype.emit = function(ctx) {
 	return ([
 		Op.LOCATION, start, end,
 		Op.LABEL, this.name.canonical,
-		Op.STACK_ALLOC, this.meta.locals.length])
+		Op.STACK_ALLOC, this.meta.locals.length + this.meta.unbound.length])
 	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
-	.concat(this.meta.unbound.flatMap(a => [Op.ARGUMENT, a]))
 	.concat(this.args.slice(0).reverse().flatMap(a => [Op.SET_ARGUMENT, a.canonical]))
+	.concat(this.meta.unbound.slice(0).reverse().flatMap(a => [Op.SET_LOCAL, a]))
 	.concat(this.statements.flatMap(s => s.emit()))
+	.concat(this.meta.unbound.flatMap(a => [Op.GET_LOCAL, a]))
 	.concat([
 		Op.LOCATION, start, end,
-		Op.STACK_FREE, this.meta.locals.length,
+		Op.STACK_FREE, this.meta.locals.length + this.meta.unbound.length,
 		Op.RETURN])
 	.concat(this.definitions.flatMap(d => d.emit()));
 };
@@ -907,10 +912,6 @@ AST.Statement.prototype.emit = function(ctx) {
 			if (this.args.length === 1) {
 				let rvalue = this.args[0].emit();
 
-				if (this.args[0].meta.type === 'vector') {
-					rvalue.push(Op.READ_PIXEL);
-				}
-
 				return [Op.LOCATION, start, end, Op.CONSTANT, 255].concat(rvalue).concat([
 					Op.LOCATION, start, end,
 					Op.CONSTANT, 0,
@@ -950,8 +951,6 @@ AST.Statement.prototype.emit = function(ctx) {
 				if (this.args[1].meta.type === 'vector') {
 					return lvalue.concat(rvalue).concat([
 						Op.LOCATION, start, end,
-						Op.READ_PIXEL,
-						Op.UNPACK_GRAY,
 						Op.PACK_GRAY,
 						Op.WRITE_PIXEL]);
 				} else {
@@ -986,11 +985,7 @@ AST.Statement.prototype.emit = function(ctx) {
 			} else {
 				let rvalue = this.args[1].emit();
 
-				if (this.args[1].meta.type === 'vector') {
-					rvalue = rvalue.concat([Op.READ_PIXEL, Op.UNPACK_GRAY]);
-				}
-
-				if (this.args[0].meta.argument === true || this.args[0].meta.bound === false) {
+				if (this.args[0].meta.argument === true) {
 					return rvalue.concat([Op.SET_ARGUMENT, this.args[0].canonical]);
 				} else {
 					return rvalue.concat([Op.SET_LOCAL, this.args[0].canonical]);
@@ -1017,17 +1012,18 @@ AST.Statement.prototype.emit = function(ctx) {
 				Op.RETURN
 			]);*/
 		}
+		case 'pause': {
+			return [Op.LOCATION, start, end]
+				.concat(this.args[0].emit())
+				.concat(Op.PAUSE);
+		}
 		case 'refresh': {
 			return [Op.LOCATION, start, end, Op.REDRAW];
 		}
 		default: {
 			// At this point all we're left with are function calls I guess
-			// TODO: attach the command implementation here.
-			// If there's no implementation, it's a builtin and nothing is unbound
-			let outers = this.meta.command ? this.meta.command.meta.unbound : [];
-
 			return [Op.LOCATION, start, end]
-				.concat(outers.flatMap(id => [Op.SET_OUTER, id]))
+				.concat(this.meta.unbound.flatMap(id => [Op.GET_LOCAL, id]))
 				.concat(this.args.flatMap(a => a.emit()))
 				.concat([
 					Op.LOCATION, start, end,
@@ -1036,7 +1032,7 @@ AST.Statement.prototype.emit = function(ctx) {
 					Op.STACK_FREE, this.args.length,
 					Op.POP
 				])
-				.concat(outers.slice(0).reverse().flatMap(id => [Op.GET_OUTER, id]));
+				.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]));
 		}
 	}
 };
@@ -1046,7 +1042,7 @@ AST.Generator.prototype.emit = function(ctx) {
 	const end = this.meta.end.offset;
 
 	return [Op.LOCATION, start, end]
-		.concat(this.meta.unbound.flatMap(id => [Op.SET_OUTER, id]))
+		.concat(this.meta.unbound.flatMap(id => [Op.GET_LOCAL, id]))
 		.concat(this.args.flatMap(a => a.emit()))
 		.concat([
 			Op.LOCATION, start, end,
@@ -1054,14 +1050,14 @@ AST.Generator.prototype.emit = function(ctx) {
 			Op.CALL, this.canonical,
 			Op.STACK_FREE, this.args.length
 		])
-		.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.GET_OUTER, id]));
+		.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]));
 };
 
 AST.Identifier.prototype.emit = function() {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	if (this.meta.argument === true || this.meta.bound === false) {
+	if (this.meta.argument === true) {
 		return [Op.LOCATION, start, end, Op.GET_ARGUMENT, this.canonical];
 	} else {
 		return [Op.LOCATION, start, end, Op.GET_LOCAL, this.canonical];
@@ -1076,7 +1072,17 @@ AST.Integer.prototype.emit = function() {
 };
 
 AST.Vector.prototype.emit = function() {
-	return this.values.flatMap((x) => x.emit());
+	return (this.meta.lvalue ? [] : [Op.CONSTANT, 100])
+		.concat(this.values.flatMap((x) => x.emit()))
+		.concat(this.meta.lvalue ? [] : [
+			Op.READ_PIXEL, 
+			Op.UNPACK_GRAY,
+			Op.CONSTANT, 100,
+			Op.MULTIPLY,
+			Op.CONSTANT, 255,
+			Op.DIVIDE,
+			Op.SUBTRACT
+		]);
 };
 
 AST.Operator.prototype.emit = function() {

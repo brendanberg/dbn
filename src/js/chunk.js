@@ -50,18 +50,6 @@ Chunk.prototype.disassemble = function() {
 				instrs.push('\tSET_LOCAL ' + idx);
 				break;
 			}
-			case Op.GET_OUTER: {
-				offsets[i] = instrs.length;
-				const idx = this.code[++i];
-				instrs.push('\tGET_OUTER ' + idx);
-				break;
-			}
-			case Op.SET_OUTER: {
-				offsets[i] = instrs.length;
-				const idx = this.code[++i];
-				instrs.push('\tSET_OUTER ' + idx);
-				break;
-			}
 
 			case Op.ADD: {
 				offsets[i] = instrs.length;
@@ -247,6 +235,12 @@ Chunk.prototype.disassemble = function() {
 				break;
 			}
 
+			case Op.PAUSE: {
+				offsets[i] = instrs.length;
+				instrs.push('\tPAUSE ');
+				break;
+			}
+
 			case Op.STACK_ALLOC: {
 				offsets[i] = instrs.length;
 				const count = this.code[++i];
@@ -301,7 +295,6 @@ Chunk.prototype.disassemble = function() {
 				break;
 			}
 			case Op.HALT: {
-				console.log(instrs.slice(i - 10, i + 10))
 				addrs.push('    ');
 				offsets[i] = instrs.length;
 				instrs.push('\tHALT');

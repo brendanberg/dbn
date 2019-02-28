@@ -20,7 +20,9 @@ module.exports = {
 		new CopyWebpackPlugin([
 			{from: 'src/index.html', to: ''},
 			{from: 'src/css', to: 'css', test: /\.css$/},
-			{from: 'src/assets', to: 'assets', test: /\.(svg|gif|jpg|jpeg|png)$/}
+			{from: 'src/assets', to: 'assets', test: /\.(svg|gif|jpg|jpeg|png)$/},
+			{from: 'src/examples', to: 'examples'},
+			{from: 'src/icons', to: 'icons'}
 		])
 	],
 	module: {

@@ -4,17 +4,32 @@
  * main.js initializes the PixelPusher VM and connects window UI elements to
  * their desired actions. That's it :)
  */
-
+import axios from 'axios';
 import DBN from './dbn';
 
 window.addEventListener('load', function(ee) {
+	const sketch = document.getElementById('sketch');
+	
+	const queryParams = new URLSearchParams(window.location.search);
+	const sketchPath = queryParams.get('');
+
+	if (sketchPath) {
+		// If there was a sketch path as a query parameter, make an Ajax
+		// request for the file contents and fill the sketch textarea.
+		axios.get('/' + sketchPath.replace(/^\//, '')).then(response => {
+			if ([200, 304].includes(response.status)) {
+				sketch.value = response.data;
+			}
+		}).catch(error => {
+			window.location = '/';
+		});
+	}
+
 	const paper = document.getElementById('paper');
 	window.interpreter = new DBN();
 	window.interpreter.init(paper);
 
 
-	const sketch = document.getElementById('sketch');
-	
 	sketch.focus();
 	sketch.setSelectionRange(sketch.value.length, sketch.value.length);
 

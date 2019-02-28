@@ -4,9 +4,6 @@ export const HALT = 0x00,
 	SET_ARGUMENT = 0x03,
 	GET_LOCAL = 0x04,
 	SET_LOCAL = 0x05,
-	// TODO: Rename these to PUSH_OUTER and POP_OUTER?
-	GET_OUTER = 0x06,
-	SET_OUTER = 0x07,
 
 	ADD = 0x12,
 	SUBTRACT = 0x13,
@@ -38,6 +35,8 @@ export const HALT = 0x00,
 	JUMP_IF_NONNEGATIVE = 0x52,
 	JUMP_IF_ZERO = 0x53,
 	JUMP_IF_NONZERO = 0x54,
+
+	PAUSE = 0x60,
 
 	STACK_ALLOC = 0x70,
 	STACK_FREE = 0x71,

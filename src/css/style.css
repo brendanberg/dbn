@@ -357,6 +357,25 @@ div.frame pre {
 	line-height: 1.4em;
 }
 
+div.frame ul.icon-browser li {
+	display: inline-block;
+	width: 120pt;
+	height: 130pt;
+	text-align: center;
+}
+
+div.frame ul.icon-browser p {
+	font-weight: bold;
+}
+
+div.frame ul.icon-browser a img {
+	box-shadow: 0.2pt 0.2pt 8pt 0 #444;
+}
+
+div.frame ul.icon-browser a:hover img {
+	box-shadow: 0.2pt 0.2pt 10pt 0 #000;
+}
+
 div.frame a { color: #3C6997; text-decoration: none; }
 div.frame a:hover { color: #C90; }
 
