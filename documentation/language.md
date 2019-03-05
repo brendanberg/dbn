@@ -45,9 +45,9 @@ symbols on their lines.
 
 A __Value__ is either an atomic value like a number or a name,
 or a compound value that is enclosed in either parentheses
-<nobr>(<pre>(</pre> and <pre>)</pre>)</nobr>,
-square brackets <nobr>(<pre>[</pre> and <pre>]</pre>)</nobr>,
-or angle brackets <nobr>(<pre>&lt;</pre> and <pre>&gt;</pre>)</nobr>.
+<nobr>(<code>(</code> and <code>)</code>)</nobr>,
+square brackets <nobr>(<code>[</code> and <code>]</code>)</nobr>,
+or angle brackets <nobr>(<code>&lt;</code> and <code>&gt;</code>)</nobr>.
 
 Spaces are required to separate atomic values,
 and spaces are optional, but highly recommended between compound values.
