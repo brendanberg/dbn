@@ -44,8 +44,10 @@ symbols on their lines.
 ### Values
 
 A __Value__ is either an atomic value like a number or a name,
-or a compound value that is enclosed in either parentheses (`(` and `)`),
-square brackets (`[` and `]`), or angle brackets (`<` and `>`).
+or a compound value that is enclosed in either parentheses
+<nobr>(<pre>(</pre> and <pre>)</pre>)</nobr>,
+square brackets <nobr>(<pre>[</pre> and <pre>]</pre>)</nobr>,
+or angle brackets <nobr>(<pre>&lt;</pre> and <pre>&gt;</pre>)</nobr>.
 
 Spaces are required to separate atomic values,
 and spaces are optional, but highly recommended between compound values.
@@ -118,8 +120,8 @@ but is an accurate description of the language's grammar.
 StatementList     ::= __ (CompoundStatement (Newline CompoundStatement)* )?
 CompoundStatement ::= (Block | Statement) _? Comment?
                     | Comment
-Block             ::= '{' StatementList '}'
-                    | '{' __ '}'
+Block             ::= '{' _? Comment? Newline StatementList Newline '}'
+                    | '{' _? Comment? Newline '}'
 Statement         ::= Name ValueList?
 
 ValueList         ::= _? CompoundValue ValueList?
