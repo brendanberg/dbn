@@ -16,3 +16,5 @@ features, you may be interested in the [Language Guide][lang] and
 
 [lang]: https://github.com/brendanberg/dbn/blob/master/documentation/language.md
 [docs]: https://github.com/brendanberg/dbn/blob/master/documentation/api.md
+
+<!-- https://docs.racket-lang.org/dbn-manual/index.html -->

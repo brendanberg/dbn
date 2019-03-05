@@ -14,8 +14,8 @@ more than one value in a sequence are indicated with an ellipsis.
 ### Paper
 
 Sets every pixel on the canvas to a specified grayscale value. The value may
-be an integer between 0, representing white (or 0% black), and 100, representing
-black (100% black).
+be an integer between 0 representing white (think 0% black), and 100 representing
+black (as in 100% black).
 
 <pre><strong>Paper</strong> <em>value</em></pre>
 
