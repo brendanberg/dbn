@@ -21,11 +21,11 @@
 		<meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png?v=2">
 		<meta name="theme-color" content="#ffffff">
 
-		<!-- Styles -->
+		<!-- Font & Styles -->
 		<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
 		<link rel="stylesheet" href="/css/style.css?v=4k9qx" type="text/css" />
 
-		<!-- Load the good stuff -->
+		<!-- Load the Good Stuff -->
 		<script src="/js/main.bundle.js?v=4k9qx" type="application/javascript"></script>
 		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-134176228-2"></script>
 		<script>
@@ -62,7 +62,7 @@
 			</div>
 			<div class="column right" style="position: relative;">
 				<div class="backdrop" id="bk"><div class="highlights" id="hl"></div></div>
-				<textarea class="code" id="sketch" spellcheck="false">// Type a program or click the "Open" icon (&#x21EA;) for examples.
+				<textarea class="code" id="sketch" spellcheck="false">// Type a DBN program or click the "Open" icon (&#x21EA;) for examples.
 </textarea>
 			</div>
 		</div>
@@ -122,8 +122,10 @@
 
 					<p>A DBN program's output is a virtual sheet of paper. The
 					paper is divided into a grid of 101 &times; 101 squares,
-					each of which can be filled with a shade of gray. The
-					language </p>
+					each of which can be filled with a shade of gray. This document
+					describes the basic concepts of the DBN language, which you
+					can use to construct any number of programs that are capable
+					of producing a vast universe of images.</p>
 
 					<h3>Making a Statement</h3>
 
@@ -203,7 +205,21 @@ Line 0 0 100 100</pre></td>
 
 					<h3>Calculations</h3>
 
-					<p>Expressions are mathematical calculations enclosed in parentheses.</p>
+					<p>Sometimes it's helpful to relate multiple values together
+					into a single number. A <em>calculation</em> tells the computer
+					to perform arithmetic on a sequence of numbers and variables.</p>
+					
+					<p>Two of the symbols we use for calculation will be familiar from
+					mathematics lessons in school: <code>+</code> and <code>-</code>
+					signify addition and subtraction. Instead of &times; and &div;,
+					however, we use <code>*</code> and <code>/</code> to signify
+					multiplication and division because we have keys for them on our
+					keyboards.</p>
+					
+					<p>A calculation must be wrapped in parentheses to signal to DBN
+					where the expression begins and ends. The statement in the following
+					example calculates the value 100&minus;50 and sets the paper to the
+					resulting value:<p>
 
 <pre>Paper (100 - 50)</pre>
 

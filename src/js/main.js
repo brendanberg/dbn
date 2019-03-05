@@ -13,7 +13,7 @@ window.addEventListener('load', function(ee) {
 	const queryParams = new URLSearchParams(window.location.search);
 	const sketchPath = queryParams.get('');
 
-	if (sketchPath) {
+	if (sketchPath && sketchPath.match(/\.dbn$/)) {
 		// If there was a sketch path as a query parameter, make an Ajax
 		// request for the file contents and fill the sketch textarea.
 		axios.get('/' + sketchPath.replace(/^\//, '')).then(response => {
