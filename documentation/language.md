@@ -44,13 +44,11 @@ symbols on their lines.
 ### Values
 
 A __Value__ is either an atomic value like a number or a name,
-or a compound value that is enclosed in either parentheses
-<nobr>(<code>(</code> and <code>)</code>)</nobr>,
-square brackets <nobr>(<code>[</code> and <code>]</code>)</nobr>,
-or angle brackets <nobr>(<code>&lt;</code> and <code>&gt;</code>)</nobr>.
+or a compound value that is enclosed in either parentheses (`(` and `)`),
+square brackets (`[` and `]`), or angle brackets (`<` and `>`).
 
-Spaces are required to separate atomic values,
-and spaces are optional, but highly recommended between compound values.
+Spaces are required to separate atomic values.
+Spaces are optional, but fanatically encouraged, around compound values.
 
 ```
 Set A 30                // The name `A` and the number `30` are both atomic values
@@ -101,7 +99,7 @@ When a connector is used as a value in a statement,
 the number definition with the same name is invoked with the connector's values as arguments.
 
 The example below shows a conditional block using the connector `<Mouse 1>`
-to test whether the mouse's x position is less than 50.
+to test whether the mouse's X position is less than 50.
 
 ```
 Smaller? <Mouse 1> 50
@@ -109,6 +107,22 @@ Smaller? <Mouse 1> 50
     Field 0 0 50 100 30
 }
 ```
+
+### Numbers
+
+A __Number__ is a sequence of digits 0 through 9,
+optionally preceded by a sign symbol (`+` or `-`).
+
+Numbers in DBN are integers in the range -2,147,483,648 to 2,147,483,647.
+
+### Names
+
+A __Name__ is a sequence of one or more letters and numbers
+that can be used to refer to values or procedures.
+DBN names must start with an upper- or lowercase letter A through Z, or an underscore (`_`),
+and can be followed by any number of letters, numerals 0 through 9, underscores, and question marks (`?`).
+
+Names in DBN are not case-sensitive, so `MyName`, `MYNAME`, and `myname` are all synonyms.
 
 ## DBN Grammar
 
@@ -137,7 +151,7 @@ Connector         ::= '<' _? Name ValueList? _? '>'
 Expression        ::= '(' _? Term (_? ['+' | '-'] _? Term)* _? ')'
 Term              ::= Value (_? ['*' | '/' | '%'] _? Value)*
 
-Number            ::= '-'? [0-9]+
+Number            ::= ('-' | '+')? [0-9]+
 Name              ::= [A-Za-z?] [A-Za-z0-9_?]*
 
 _                 ::= [ \t]+
