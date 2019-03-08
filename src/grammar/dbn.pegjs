@@ -9,7 +9,7 @@ start
 	= __ ls:statementList? __ { return new AST.Program(ls || [], location()); }
 
 statementList
-	= first:compoundStatement rest:($ __ s:compoundStatement { return s; })* {
+	= first:compoundStatement rest:(_$ __ s:compoundStatement { return s; })* {
 			return first.concat(rest.reduce((f, r) => f.concat(r), []));
 		}
 
@@ -20,45 +20,42 @@ compoundStatement
 	/ c:comment { return [c]; }
 
 block
-	= "{" __ "}" { return new AST.Block([], location()); }
-	/ "{" __ ls:statementList __ "}" { return new AST.Block(ls, location()); }
+	= "{" _? _$ "}" { return new AST.Block([], location()); }
+	/ "{" _? _$ ls:statementList __ "}" { return new AST.Block(ls, location()); }
 
 statement
-	= n:command ls:(_ v:valueList { return v; })? {
+	= n:command ls:(v:valueList { return v; })? {
 			return new AST.Statement(n, ls || [], location());
 		}
 
 valueList
-	= first:bareValue rest:(_ vs:valueList { return vs; })? {
+	= _ first:atomicValue rest:(valueList)? {
 			return [first].concat(rest || []);
 		}
-	/ first:enclosedValue rest:(_? vs: valueList { return vs; })? {
+	/ _? first:compoundValue rest:(valueList)? {
 			return [first].concat(rest || []);
 		}
 
 value
-	= enclosedValue / bareValue
+	= compoundValue / atomicValue
 
-enclosedValue
+compoundValue
 	= parenthesized / vector / generator
 
-bareValue
-	= scalar
+atomicValue
+	= i:number { return new AST.Integer(i, location()); }
+	/ n:variable { return new AST.Identifier(n, location()); }
 
 parenthesized
-	= "(" _? e:addExpression _? ")" { return e; }
+	= "(" _? e:expression _? ")" { return e; }
 
 vector
 	= "[" _? v:valueList _? "]" { return new AST.Vector(v, location()) }
 
 generator 
-	= "<" _? n:name vs:(_ x:valueList { return x; })? _? ">" {
+	= "<" _? n:name vs:(valueList)? _? ">" {
 			return new AST.Generator(n, vs || [], location());
 		}
-
-scalar
-	= i:number { return new AST.Integer(i, location()); }
-	/ n:variable { return new AST.Identifier(n, location()); }
 
 number "number"
 	= s:(x:"-"? { return [x || '']; }) d:[0-9]+ { return parseInt(s.concat(d).join(''), 10); }
@@ -72,14 +69,14 @@ command "command"
 name
 	= first:[A-Za-z] rest:[A-Za-z0-9_?]* { return first + rest.join(''); }
 
-addExpression
-	= first:mulExpression rest:(_? op:addOper _? rhs:mulExpression {
+expression
+	= first:term rest:(_? op:addOper _? rhs:term {
 		return new AST.Operator(op, null, rhs, location());
 	})* {
 		return rest.reduce((ast, expr) => { expr.lhs = ast; return expr; }, first);
 	}
 
-mulExpression
+term
 	= first:value rest:(_? op:mulOper _? rhs:value {
 		return new AST.Operator(op, null, rhs, location());
 	})* {
@@ -101,11 +98,8 @@ comment ""
 _ ""
 	= [ \t]+
 
-$
-	= newline
-
-newline "new line"
-	= "\n"+
+_$ "new line"
+	= __ "\n" __
 
 __ ""
 	= [ \t\n]*

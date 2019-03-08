@@ -59,7 +59,7 @@ DBN.prototype.run = function(source, callback) {
 		this.stop();
 	}
 
-	let timer = new Timer();
+	const timer = new Timer();
 	timer.start();
 
 	let ast;
@@ -73,7 +73,7 @@ DBN.prototype.run = function(source, callback) {
 			const exp = Object.keys(err.expected
 					.filter(x => x.hasOwnProperty('description') && x.description.length)
 					.map(x => x.description)
-					.reduce((map, item) => map[item] = true, {})
+					.reduce((map, item) => Object.assign({[map[item]]: true}, map), {})
 				).concat(err.expected.filter(x => x.hasOwnProperty('text'))
 				.map(x => '"' + x.text + '"'));
 
@@ -164,7 +164,7 @@ DBN.prototype.run = function(source, callback) {
 		return [node, true];
 	};
 
-	const resolveTransform = (node, outerMeta) => {
+	const resolveIdentifiers = (node, outerMeta) => {
 		if (node.meta.type === 'program' || node.meta.type === 'command'
 					|| node.meta.type === 'number') {
 
@@ -194,7 +194,7 @@ DBN.prototype.run = function(source, callback) {
 				.reduce((map, elt) => Object.assign({[elt[0]]: elt[1]}, map), outerNumbers);
 
 			commands = commands.map(c => {
-				c = c.transform(resolveTransform, node.meta);
+				c = c.transform(resolveIdentifiers, node.meta);
 				Array.prototype.push.apply(
 					node.meta.commands[c.name.canonical].unbound,
 					c.meta.unbound
@@ -203,7 +203,7 @@ DBN.prototype.run = function(source, callback) {
 			});
 
 			numbers = numbers.map(n => {
-				n = n.transform(resolveTransform, node.meta);
+				n = n.transform(resolveIdentifiers, node.meta);
 				Array.prototype.push.apply(
 					node.meta.numbers[n.name.canonical].unbound,
 					n.meta.unbound
@@ -213,7 +213,7 @@ DBN.prototype.run = function(source, callback) {
 
 			node.statements = node.statements.filter(s =>
 					s.meta.type !== 'command' && s.meta.type !== 'number')
-				.map(s => s.transform(resolveTransform, node.meta));
+				.map(s => s.transform(resolveIdentifiers, node.meta));
 
 			node.definitions = commands.concat(numbers);
 			return [node, false];
@@ -233,16 +233,16 @@ DBN.prototype.run = function(source, callback) {
 					}
 				}
 
-				node.start = node.start.transform(resolveTransform, outerMeta);
-				node.stop = node.stop.transform(resolveTransform, outerMeta);
+				node.start = node.start.transform(resolveIdentifiers, outerMeta);
+				node.stop = node.stop.transform(resolveIdentifiers, outerMeta);
 			}
-			node.statements = node.statements.map(s => s.transform(resolveTransform, outerMeta));
+			node.statements = node.statements.map(s => s.transform(resolveIdentifiers, outerMeta));
 			return [node, false];
 
 		} else if (node.meta.type === 'condition') {
 			// TODO: Can this simply be handled by the default recursive case?
-			node.predicate = node.predicate.transform(resolveTransform, outerMeta);
-			node.statements = node.statements.map(s => s.transform(resolveTransform, outerMeta));
+			node.predicate = node.predicate.transform(resolveIdentifiers, outerMeta);
+			node.statements = node.statements.map(s => s.transform(resolveIdentifiers, outerMeta));
 			return [node, false];
 		} else if (node.meta.type === 'identifier') {
 			if (outerMeta.args.includes(node.canonical)) {
@@ -274,12 +274,12 @@ DBN.prototype.run = function(source, callback) {
 					}
 				} else {
 					// Handle a vector or generator
-					node.args[0] = node.args[0].transform(resolveTransform, outerMeta);
+					node.args[0] = node.args[0].transform(resolveIdentifiers, outerMeta);
 					node.args[0].meta.lvalue = true;
 				}
 
 				node.args = node.args.slice(0, 1).concat(node.args.slice(1)
-					.map(n => n.transform(resolveTransform, outerMeta)));
+					.map(n => n.transform(resolveIdentifiers, outerMeta)));
 
 				return [node, false];
 			} else {
@@ -301,7 +301,7 @@ DBN.prototype.run = function(source, callback) {
 					};
 				}
 
-				node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
+				node.args = node.args.map(n => n.transform(resolveIdentifiers, outerMeta));
 				node.meta.unbound = outerMeta.commands[node.canonical].unbound;
 
 				for (let name of node.meta.unbound) {
@@ -331,7 +331,7 @@ DBN.prototype.run = function(source, callback) {
 				};
 			}
 
-			node.args = node.args.map(n => n.transform(resolveTransform, outerMeta));
+			node.args = node.args.map(n => n.transform(resolveIdentifiers, outerMeta));
 			node.meta.unbound = outerMeta.numbers[node.canonical].unbound;
 
 			for (let name of node.meta.unbound) {
@@ -347,7 +347,7 @@ DBN.prototype.run = function(source, callback) {
 	};
 
 	ast = ast.applyTransformations([
-		removeComments, commandTransform, resolveTransform
+		removeComments, commandTransform, resolveIdentifiers
 	]);
 
 	const self = this;
