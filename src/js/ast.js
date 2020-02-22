@@ -257,6 +257,7 @@ const AST = {
 		//this.defns = [];
 		this.outerDefns = [];
 		this.statements = statements;
+		this.comment = null;
 	},
 
 	Loop: function(name, start, stop, statements, meta) {
@@ -331,6 +332,7 @@ const AST = {
 		this.name = name.name;
 		this.canonical = name.canonical;
 		this.args = args;
+		this.comment = null;
 	},
 
 	Generator: function (name, args, meta) {
@@ -579,6 +581,73 @@ AST.Comment.prototype.transform = function(transformFunc) {
 	return node;
 };
 
+
+
+// Indentification functions. (Required for the "Beautify" feature).
+function prefix(depth) {
+	return '    '.repeat(depth);
+}
+
+AST.Program.prototype.indent = function(depth) {
+	if (this.statements && this.statements.length > 0) {
+		return this.statements.map(st => st.indent(0)).join('\n');
+	} else {
+		return '';
+	}
+};
+
+AST.Block.prototype.indent = function(depth) {
+	const indent = prefix(depth);
+	let comment = '';
+
+	if (this.comment) {
+		comment = '  ' + this.comment.indent(0);
+	}
+
+	if (this.statements && this.statements.length > 0) {
+		return (indent + '{\n' +
+			this.statements.map(st => st.indent(depth + 1)).join('\n') + '\n' +
+			indent + '}' + comment + '\n');
+	} else {
+		return (indent + '{\n' + indent + '}' + comment + '\n');
+	}
+};
+
+AST.Statement.prototype.indent = function(depth) {
+	const indent = prefix(depth);
+
+	return (indent + this.command + valuelist + '\n');
+};
+
+AST.Comment.prototype.indent = function(depth) {
+	return prefix(depth) + '//' + this.text;
+};
+
+// The following indentation functions are for constructs that must be entirely
+// on one line (IS THIS ACTUALLY TRUE?)
+
+AST.Integer.prototype.indent = function() {
+	return this.value.toString();
+};
+
+AST.Identifier.prototype.indent = function() {
+	return this.name;
+};
+
+AST.Generator.prototype.indent = function() {
+	return '<' + this.name + ' ' + this.args.map(a => a.indent(0)).join(' ') + '>';
+};
+
+AST.Operator.prototype.indent = function() {
+	let expressionString = (this.lhs.indent(0) + ' ' + 
+		this.operator + ' ' + this.rhs.indent(0));
+
+	if (this.parenthesized) {
+		return '(' + expressionString + ')';
+	} else {
+		return expressionString;
+	}
+};
 
 
 // Stringification functions.

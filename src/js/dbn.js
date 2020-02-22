@@ -54,6 +54,58 @@ DBN.prototype.init = function(paper) {
 	paper.addEventListener('mouseup', cancel, false);
 };
 
+DBN.prototype.beautify = function(source, callback) {
+	let ast;
+
+	try {
+		ast = this.parser.parse(source);
+	} catch(err) {
+		gtag('event', 'Parse Error', {event_category: 'Beautify Sketch'});
+
+		if (err.expected && err.found) {
+			let message;
+			const exp = Object.keys(err.expected
+					.filter(x => x.hasOwnProperty('description') && x.description.length)
+					.map(x => x.description)
+					.reduce((map, item) => Object.assign({[map[item]]: true}, map), {})
+				).concat(err.expected.filter(x => x.hasOwnProperty('text'))
+				.map(x => '"' + x.text + '"'));
+
+			console.log(exp);
+
+			if (exp.length === 2) {
+				message = 'expected ' + exp.join(' or ') + ' but encountered "' + err.found + '"';
+			} else if (exp.length !== 0) {
+				exp[exp.length - 1] = 'or ' + exp[exp.length - 1];
+				message = 'expected ' + exp.join(', ') + ' but encountered "' + err.found + '"';
+			} else {
+				message = 'encountered unexpected "' + err.found + '"';
+			}
+
+			throw {
+				message: message,
+				start: err.location.start,
+				end: err.location.end
+			};
+		} else {
+			//message = err.message;
+			throw err;
+			({
+				message: err.message || 'unidentified parse error',
+				start: err.location.start,
+				end: err.location.end
+			});
+		}
+	}
+
+
+	if (callback && typeof(callback) === 'function') {
+		this.callback = callback;
+	}
+
+	return ast.indent(0);
+};
+
 DBN.prototype.run = function(source, callback) {
 	if (this.running) {
 		this.stop();

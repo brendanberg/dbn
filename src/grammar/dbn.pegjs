@@ -10,14 +10,17 @@ start
 
 statementList
 	= first:compoundStatement rest:(_$ __ s:compoundStatement { return s; })* {
-			return first.concat(rest.reduce((f, r) => f.concat(r), []));
+			return [first].concat(rest);
+			//return first.concat(rest.reduce((f, r) => f.concat(r), []));
 		}
 
 compoundStatement
-	= b:(block / statement) c:(_? c:comment { return c; })? {
-		return [b].concat(c || []);
+	= b:(block / statement) c:(_? c:comment { c.standalone = false; return c; })? {
+		// TODO: pin the comment to the block or statement it follows
+		b.comment = c;
+		return b;
 	}
-	/ c:comment { return [c]; }
+	/ c:comment { return c; }
 
 block
 	= "{" _? _$ "}" { return new AST.Block([], location()); }
@@ -47,7 +50,7 @@ atomicValue
 	/ n:variable { return new AST.Identifier(n, location()); }
 
 parenthesized
-	= "(" _? e:expression _? ")" { return e; }
+	= "(" _? e:expression _? ")" { e.parenthesized = true; return e; }
 
 vector
 	= "[" _? v:valueList _? "]" { return new AST.Vector(v, location()) }
