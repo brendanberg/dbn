@@ -8,7 +8,37 @@ const AST = {
 
 	tools: {
 		toCanonicalName: function(name) {
-			return name.toLowerCase();
+			const map = {
+				'load': 'Load',
+				'paper': 'Paper',
+				'pen': 'Pen',
+				'line': 'Line',
+				'set': 'Set',
+				'value': 'Value',
+				'repeat': 'Repeat',
+				'forever': 'Forever',
+				'same?': 'Same?',
+				'notsame?': 'NotSame?',
+				'smaller?': 'Smaller?',
+				'notsmaller?': 'NotSmaller?',
+				'command': 'Command',
+				'number': 'Number',
+				'pause': 'Pause',
+				'refresh': 'Refresh',
+				'mouse': 'Mouse',
+				'key': 'Key',
+				'time': 'Time',
+				'net': 'Net',
+				'array': 'Array',
+				'abs': 'Abs'
+			};
+			let lower = name.toLowerCase();
+
+			if (lower in map) {
+				return map[lower];
+			} else {
+				return lower;
+			}
 		},
 		gensym: function() {
 			return '$_AST_JS_' + (currentSymbol++).toString(36).toUpperCase();
@@ -16,25 +46,25 @@ const AST = {
 	},
 
 	reservedWords: [
-		'load',
-		'paper',
-		'pen',
-		'line',
-		'set',
-		'value',
-		'repeat',
-		'forever',
-		'same?',
-		'notsame?',
-		'smaller?',
-		'notsmaller?',
-		'command',
-		'number',
-		'pause'
+		'Load',
+		'Paper',
+		'Pen',
+		'Line',
+		'Set',
+		'Value',
+		'Repeat',
+		'Forever',
+		'Same?',
+		'NotSame?',
+		'Smaller?',
+		'NotSmaller?',
+		'Command',
+		'Number',
+		'Pause'
 	],
 
 	controlFlow: {
-		'repeat': function(stmnt, body) {
+		'Repeat': function(stmnt, body) {
 			var name = stmnt.args[0],
 				start = stmnt.args[1],
 				stop = stmnt.args[2];
@@ -70,7 +100,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'forever': function(forever, body) {
+		'Forever': function(forever, body) {
 			if (forever.args.length) {
 				throw {
 					message: '"forever" must be followed by a new line',
@@ -84,7 +114,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'same?': function(stmnt, body) {
+		'Same?': function(stmnt, body) {
 			if (stmnt.args.length !== 2) {
 				throw {
 					message: '"' + stmnt.canonical + '" requires two values to compare',
@@ -103,7 +133,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'notsame?': function(stmnt, body) {
+		'NotSame?': function(stmnt, body) {
 			if (stmnt.args.length !== 2) {
 				throw {
 					message: '"' + stmnt.canonical + '" requires two values to compare',
@@ -122,7 +152,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'smaller?': function(stmnt, body) {
+		'Smaller?': function(stmnt, body) {
 			if (stmnt.args.length !== 2) {
 				throw {
 					message: '"' + stmnt.canonical + '" requires two values to compare',
@@ -141,7 +171,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'notsmaller?': function(stmnt, body) {
+		'NotSmaller?': function(stmnt, body) {
 			if (stmnt.args.length !== 2) {
 				throw {
 					message: '"' + stmnt.canonical + '" requires two values to compare',
@@ -160,7 +190,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'command': function(stmnt, body) {
+		'Command': function(stmnt, body) {
 			if (stmnt.args.length < 1) {
 				throw {
 					message: '"command" requires a name as the first parameter',
@@ -186,7 +216,7 @@ const AST = {
 				end: body.meta.end
 			});
 		},
-		'number': function(stmnt, body) {
+		'Number': function(stmnt, body) {
 			// TODO: Disallow side effects.
 			if (stmnt.args.length < 1) {
 				throw {
@@ -216,22 +246,22 @@ const AST = {
 	},
 
 	connectors: {
-		'mouse': {arity: [1], unbound: []},
-		'key': {arity: [1], unbound: []},
-		'time': {arity: [1], unbound: []},
-		'net': {arity: [1], unbound: []},
-		'array': {arity: [1], unbound: []},
-		'abs': {arity: [1], unbound: []}
+		'Mouse': {arity: [1], unbound: []},
+		'Key': {arity: [1], unbound: []},
+		'Time': {arity: [1], unbound: []},
+		'Net': {arity: [1], unbound: []},
+		'Array': {arity: [1], unbound: []},
+		'Abs': {arity: [1], unbound: []}
 	},
 	
 	commands: {
-		'paper': {arity: [1, 3], unbound: []},
-		'pen': {arity: [1, 3], unbound: []},
-		'set': {arity: [2], unbound: []},
-		'line': {arity: [4], unbound: []},
-		'field': {arity: [5], unbound: []},
-		'value': {arity: [1], unbound: []},
-		'pause': {arity: [1], unbound: []}
+		'Paper': {arity: [1, 3], unbound: []},
+		'Pen': {arity: [1, 3], unbound: []},
+		'Set': {arity: [2], unbound: []},
+		'Line': {arity: [4], unbound: []},
+		'Field': {arity: [5], unbound: []},
+		'Value': {arity: [1], unbound: []},
+		'Pause': {arity: [1], unbound: []}
 	},
 
 	Program: function (statements, meta) {
@@ -590,7 +620,7 @@ function prefix(depth) {
 
 AST.Program.prototype.indent = function(depth) {
 	if (this.statements && this.statements.length > 0) {
-		return this.statements.map(st => st.indent(0)).join('\n');
+		return this.statements.map(st => st.indent(0)).join('\n').replace(/^\n/, '');
 	} else {
 		return '';
 	}
@@ -606,21 +636,42 @@ AST.Block.prototype.indent = function(depth) {
 
 	if (this.statements && this.statements.length > 0) {
 		return (indent + '{\n' +
-			this.statements.map(st => st.indent(depth + 1)).join('\n') + '\n' +
-			indent + '}' + comment + '\n');
+			this.statements.map(st => st.indent(depth + 1)).join('\n').replace(/^\n/, '') + '\n' +
+			indent + '}' + comment);
 	} else {
-		return (indent + '{\n' + indent + '}' + comment + '\n');
+		return (indent + '{\n' + indent + '}' + comment);
 	}
 };
 
 AST.Statement.prototype.indent = function(depth) {
-	const indent = prefix(depth);
+	let linespace = '';
 
-	return (indent + this.command + valuelist + '\n');
+	if (this.canonical in AST.controlFlow || this.preceding > 1) {
+		linespace = '\n';
+	}
+
+	const indent = linespace + prefix(depth);
+	let comment = '';
+
+	if (this.comment) {
+		comment = '  ' + this.comment.indent(0);
+	}
+
+	return (indent + this.canonical + ' ' + 
+		this.args.map(a => a.indent()).join(' ') + comment);
 };
 
 AST.Comment.prototype.indent = function(depth) {
-	return prefix(depth) + '//' + this.text;
+	const indent = (this.preceding && this.preceding > 1 ? '\n' : '') + prefix(depth);
+	let text;
+
+	if (this.text.indexOf(' ') !== 0) {
+		text = ' ' + this.text;
+	} else {
+		text = this.text;
+	}
+
+	return indent + '//' + text;
 };
 
 // The following indentation functions are for constructs that must be entirely
@@ -636,6 +687,10 @@ AST.Identifier.prototype.indent = function() {
 
 AST.Generator.prototype.indent = function() {
 	return '<' + this.name + ' ' + this.args.map(a => a.indent(0)).join(' ') + '>';
+};
+
+AST.Vector.prototype.indent = function () {
+	return '[' + this.values.map(v => v.indent()).join(' ') + ']';
 };
 
 AST.Operator.prototype.indent = function() {
@@ -738,7 +793,7 @@ AST.Comment.prototype.toString = function() {
 // ------------------------
 
 AST.Identifier.prototype.canonical = function() {
-	return this.name.toLowerCase();
+	return AST.tools.toCanonicalName(this.name);
 };
 
 // Functions to emit bytecode:
@@ -945,7 +1000,7 @@ AST.Statement.prototype.emit = function(ctx) {
 	const end = this.meta.end.offset;
 
 	switch (this.canonical) {
-		case 'paper': {
+		case 'Paper': {
 			if (this.args.length === 1) {
 				return [Op.LOCATION, start, end, Op.REDRAW, Op.CONSTANT, 255]
 					.concat(this.args[0].emit()).concat([
@@ -977,7 +1032,7 @@ AST.Statement.prototype.emit = function(ctx) {
 					})).concat([Op.LOCATION, start, end, Op.PACK_RGB, Op.FILL_CANVAS]);
 			}
 		}
-		case 'pen': {
+		case 'Pen': {
 			if (this.args.length === 1) {
 				let rvalue = this.args[0].emit();
 
@@ -1011,7 +1066,7 @@ AST.Statement.prototype.emit = function(ctx) {
 					.concat([Op.LOCATION, start, end, Op.PACK_RGB, Op.SET_PEN_COLOR]);
 			}
 		}
-		case 'set': {
+		case 'Set': {
 			if (this.args[0].meta.type === 'vector') {
 				// we're setting a pixel. We don't want to change the pen color
 				let lvalue = this.args[0].emit();
@@ -1061,7 +1116,7 @@ AST.Statement.prototype.emit = function(ctx) {
 				}
 			}
 		}
-		case 'line': {
+		case 'Line': {
 			return this.args.flatMap(a => a.emit())
 				.concat([
 					Op.LOCATION, start, end,
@@ -1071,7 +1126,7 @@ AST.Statement.prototype.emit = function(ctx) {
 					Op.POP
 				]);
 		}
-		case 'value': {
+		case 'Value': {
 			// TODO: This is essentially a return statement but it kind of
 			// has to go at the end of the function definition.
 			return this.args[0].emit();
@@ -1081,12 +1136,12 @@ AST.Statement.prototype.emit = function(ctx) {
 				Op.RETURN
 			]);*/
 		}
-		case 'pause': {
+		case 'Pause': {
 			return [Op.LOCATION, start, end]
 				.concat(this.args[0].emit())
 				.concat(Op.PAUSE);
 		}
-		case 'refresh': {
+		case 'Refresh': {
 			return [Op.LOCATION, start, end, Op.REDRAW];
 		}
 		default: {

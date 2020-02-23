@@ -71,8 +71,6 @@ DBN.prototype.beautify = function(source, callback) {
 				).concat(err.expected.filter(x => x.hasOwnProperty('text'))
 				.map(x => '"' + x.text + '"'));
 
-			console.log(exp);
-
 			if (exp.length === 2) {
 				message = 'expected ' + exp.join(' or ') + ' but encountered "' + err.found + '"';
 			} else if (exp.length !== 0) {
@@ -129,7 +127,7 @@ DBN.prototype.run = function(source, callback) {
 				).concat(err.expected.filter(x => x.hasOwnProperty('text'))
 				.map(x => '"' + x.text + '"'));
 
-			console.log(exp);
+			console.log(err);
 
 			if (exp.length === 2) {
 				message = 'expected ' + exp.join(' or ') + ' but encountered "' + err.found + '"';
@@ -309,7 +307,7 @@ DBN.prototype.run = function(source, callback) {
 
 		} else if (node.meta.type === 'statement') {
 			// We have the enclosing
-			if (node.canonical === 'set') {
+			if (node.canonical === 'Set') {
 				if (node.args[0].meta.type === 'identifier') {
 					// Handle a normal l-value
 					const name = node.args[0].canonical;

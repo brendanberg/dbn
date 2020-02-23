@@ -226,6 +226,47 @@ window.addEventListener('load', function(ee) {
 		banner.innerHTML = '';
 	});
 
+	beautifyBtn.addEventListener('click', e => {
+		const source = sketch.value;
+
+		try {
+			sketch.value = window.interpreter.beautify(source);/*, function() {
+				e.target.classList.remove('sticky');
+				isBannerPinned = true;
+				banner.innerHTML = 'Done.';
+				window.setTimeout(() => {
+					isBannerPinned = false;
+					banner.innerHTML = '';
+				}, 3000);
+			});*/
+		} catch (err) {
+			//ga('send', 'event', 'sketch', 'error', err.message);
+			//e.target.classList.remove('sticky');
+			isBannerPinned = true;
+
+			if (typeof err === 'object') {
+				banner.innerHTML = err.message;
+
+				if (err.start && err.end) {
+					// Highlight selection
+					const highlighted = applyHighlights(sketch.value, {
+						start: err.start.offset,
+						end: err.end.offset
+					});
+
+					highlights.innerHTML = highlighted;
+				} else {
+					console.error(err.stack);
+					throw err;
+				}
+			} else {
+				banner.innerHTML = err;
+				console.error(err.stack);
+				throw err;
+			}
+		}
+	});
+
 
 	// ========== MODAL ==========
 

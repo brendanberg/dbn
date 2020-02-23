@@ -6,25 +6,30 @@
 }
 
 start
-	= __ ls:statementList? __ { return new AST.Program(ls || [], location()); }
+	= ls:statementList { return new AST.Program(ls, location()); }
 
 statementList
-	= first:compoundStatement rest:(_$ __ s:compoundStatement { return s; })* {
+	= __ first:compoundStatement rest:trailingStatements* __ {
 			return [first].concat(rest);
-			//return first.concat(rest.reduce((f, r) => f.concat(r), []));
+		}
+	/ __ { return []; }
+
+trailingStatements
+	= linespace:_S s:compoundStatement {
+			s.preceding = linespace.join('').split('\n').length - 1;
+			return s;
 		}
 
 compoundStatement
-	= b:(block / statement) c:(_? c:comment { c.standalone = false; return c; })? {
-		// TODO: pin the comment to the block or statement it follows
+	= b:(block / statement) c:(_? c:comment { return c; })? {
 		b.comment = c;
 		return b;
 	}
 	/ c:comment { return c; }
 
 block
-	= "{" _? _$ "}" { return new AST.Block([], location()); }
-	/ "{" _? _$ ls:statementList __ "}" { return new AST.Block(ls, location()); }
+	= "{" _S "}" { return new AST.Block([], location()); }
+	/ "{" ls:statementList "}" { return new AST.Block(ls, location()); }
 
 statement
 	= n:command ls:(v:valueList { return v; })? {
@@ -96,13 +101,13 @@ addOper "symbol"
 	/ "-" { return '-'; }
 
 comment ""
-	= "//" _? text:[^\n]* { return new AST.Comment(text.join(''), location()); }
+	= "//" text:[^\n]* { return new AST.Comment(text.join(''), location()); }
 
-_ ""
+_ "whitespace"
 	= [ \t]+
 
-_$ "new line"
-	= __ "\n" __
+_S "newline" 
+	= _? '\n' __
 
-__ ""
+__ "whitespace"
 	= [ \t\n]*
