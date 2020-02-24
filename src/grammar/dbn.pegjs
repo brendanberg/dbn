@@ -58,7 +58,9 @@ parenthesized
 	= "(" _? e:expression _? ")" { e.parenthesized = true; return e; }
 
 vector
-	= "[" _? v:valueList _? "]" { return new AST.Vector(v, location()) }
+	= "[" _? v:value vs:(valueList)? _? "]" {
+			return new AST.Vector([v].concat(vs || []), location())
+		}
 
 generator 
 	= "<" _? n:name vs:(valueList)? _? ">" {
