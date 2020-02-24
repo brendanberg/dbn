@@ -88,6 +88,10 @@ canvas#paper {
 	-ms-interpolation-mode: nearest-neighbor;   /* IE                            */
 }
 
+canvas#paper.screenshot {
+	cursor: url('/assets/camera.png') 16 18, auto;
+}
+
 textarea.code {
 	position: relative;
 	background-color: transparent;
