@@ -26,6 +26,11 @@ window.addEventListener('load', function(ee) {
 	}
 
 	const paper = document.getElementById('paper');
+	// The following line mitigates a rendering bug in Safari where a sliver
+	// of transparency is visible at the bottom of the image region on the
+	// canvas. By setting the element background color to black, it blends in
+	// with the surrounding border.
+	paper.style.backgroundColor = '#000';
 	window.interpreter = new DBN();
 	window.interpreter.init(paper);
 
@@ -267,6 +272,15 @@ window.addEventListener('load', function(ee) {
 		}
 	});
 
+	window.addEventListener('keydown', e => {
+		if (e.altKey) {
+			paper.classList.add('screenshot');
+		}
+	});
+
+	window.addEventListener('keyup', e => {
+		paper.classList.remove('screenshot');
+	});
 
 	// ========== MODAL ==========
 

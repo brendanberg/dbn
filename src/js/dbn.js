@@ -96,6 +96,63 @@ DBN.prototype.beautify = function(source, callback) {
 		}
 	}
 
+	const vars = {};
+	const cmds = {};
+
+	const resolveIdentifiers = (node, outerMeta) => {
+
+		if (node.meta.type === 'statement') {
+			switch (node.canonical) {
+				case 'Repeat':
+					vars[node.args[0].canonical] = node.args[0].name;
+					break;
+				case 'Command':
+					cmds[node.args[0].canonical] = node.args[0].name;
+
+					for (let arg of node.args.slice(1)) {
+						if (!(arg in vars)) {
+							vars[arg.canonical] = arg.name;
+						}
+					}
+					break;
+				case 'Number':
+					cmds[node.args[0].canonical] = node.args[0].name;
+
+					for (let arg of node.args.slice(1)) {
+						if (!(arg in vars)) {
+							vars[arg.canonical] = arg.name;
+						}
+					}
+
+					break;
+				case 'Set':
+					if (node.args[0].meta.type === 'identifier') {
+						vars[node.args[0].canonical] = node.args[0].name;
+					}
+					break;
+			}
+		}
+
+		return [node, true];
+	};
+
+	const updateIdentifiers = (node, outerMeta) => {
+		if (node.meta.type === 'identifier') {
+			node.name = vars[node.canonical] || node.name;
+			return [node, false];
+		} else if (node.meta.type === 'statement') {
+			if (!(node.canonical in AST.controlFlow ||
+					node.canonical in AST.connectors ||
+					node.canonical in AST.commands)) {
+				node.canonical = cmds[node.canonical] || node.name;
+			}
+			return [node, true];
+		} else {
+			return [node, true];
+		}
+	};
+
+	ast = ast.applyTransformations([resolveIdentifiers, updateIdentifiers]);
 
 	if (callback && typeof(callback) === 'function') {
 		this.callback = callback;
@@ -402,7 +459,7 @@ DBN.prototype.run = function(source, callback) {
 
 	const self = this;
 
-	ast.exports.push(function mouse(a) { 
+	ast.exports.push(function Mouse(a) { 
 		switch (a) {
 			case 1:
 				return self.canvas.mouseX;
@@ -418,15 +475,15 @@ DBN.prototype.run = function(source, callback) {
 
 	const _array = new Int32Array(1000);
 
-	ast.exports.push(function array(idx) {
+	ast.exports.push(function Array(idx) {
 		return _array[idx + 1];
 	});
 
-	ast.exports.push(function array_set(idx, val) {
+	ast.exports.push(function Array_set(idx, val) {
 		_array[idx + 1] = val;
 	});
 
-	ast.exports.push(function time(which) {
+	ast.exports.push(function Time(which) {
 		const now = new Date();
 
 		switch (which) {

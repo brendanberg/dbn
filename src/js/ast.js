@@ -71,25 +71,25 @@ const AST = {
 
 			if (!name) {
 				throw {
-					message: '"repeat" expects a variable name as the first parameter',
+					message: '"Repeat" expects a variable name as the first parameter',
 					start: stmnt.meta.start,
 					end: stmnt.meta.end
 				};
 			} else if (!(start && stop)) {
 				throw {
-					message: '"repeat" requires both start and end values',
+					message: '"Repeat" requires both start and end values',
 					start: stmnt.meta.start,
 					end: stmnt.meta.end
 				};
 			} else if (name.meta.type !== 'identifier') {
 				throw {
-					message: '"repeat" expects a variable name as the first parameter',
+					message: '"Repeat" expects a variable name as the first parameter',
 					start: name.meta.start,
 					end: name.meta.end
 				};
 			} else  if (stmnt.args.length > 3) {
 				throw {
-					message: '"repeat" expects only three parameters',
+					message: '"Repeat" expects only three parameters',
 					start: stmnt.args[3].meta.start,
 					end: stmnt.args[stmnt.args.length - 1].meta.end
 				};
@@ -103,7 +103,7 @@ const AST = {
 		'Forever': function(forever, body) {
 			if (forever.args.length) {
 				throw {
-					message: '"forever" must be followed by a new line',
+					message: '"Forever" must be followed by a new line',
 					start: forever.meta.start,
 					end: forever.meta.end
 				};
@@ -193,19 +193,19 @@ const AST = {
 		'Command': function(stmnt, body) {
 			if (stmnt.args.length < 1) {
 				throw {
-					message: '"command" requires a name as the first parameter',
+					message: '"Command" requires a name as the first parameter',
 					start: stmnt.meta.start,
 					end: stmnt.meta.end
 				};
 			} else if (stmnt.args[0].meta.type !== 'identifier') {
 				throw {
-					message: '"command" requires a name as the first parameter',
+					message: '"Command" requires a name as the first parameter',
 					start: stmnt.args[0].meta.start,
 					end: stmnt.args[0].meta.end
 				};
 			} else if (stmnt.args.slice(1).filter(x => x.meta.type !== 'identifier').length) {
 				throw {
-					message: 'additional parameters to "command" must be variable names',
+					message: 'additional parameters to "Command" must be variable names',
 					start: stmnt.args[1].meta.start,
 					end: stmnt.args[stmnt.args.length - 1].meta.end
 				}
@@ -220,19 +220,19 @@ const AST = {
 			// TODO: Disallow side effects.
 			if (stmnt.args.length < 1) {
 				throw {
-					message: '"number" requires a name as the first parameter',
+					message: '"Number" requires a name as the first parameter',
 					start: stmnt.meta.start,
 					end: stmnt.meta.end
 				};
 			} else if (stmnt.args[0].meta.type !== 'identifier') {
 				throw {
-					message: '"number" requires a name as the first parameter',
+					message: '"Number" requires a name as the first parameter',
 					start: stmnt.args[0].meta.start,
 					end: stmnt.args[0].meta.end
 				};
 			} else if (stmnt.args.slice(1).filter(x => x.meta.type !== 'identifier').length) {
 				throw {
-					message: 'additional parameters to "number" must be variable names',
+					message: 'additional parameters to "Number" must be variable names',
 					start: stmnt.args[1].meta.start,
 					end: stmnt.args[stmnt.args.length - 1].meta.end
 				}
@@ -686,7 +686,7 @@ AST.Identifier.prototype.indent = function() {
 };
 
 AST.Generator.prototype.indent = function() {
-	return '<' + this.name + ' ' + this.args.map(a => a.indent(0)).join(' ') + '>';
+	return '<' + this.canonical + ' ' + this.args.map(a => a.indent(0)).join(' ') + '>';
 };
 
 AST.Vector.prototype.indent = function () {

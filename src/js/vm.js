@@ -56,10 +56,10 @@ VM.prototype.init = function(chunk) {
 	const frameCtx = this.frame.getContext('2d');
 
 	// Set nearest-neighbor interpolation for zooming.
-	// frameCtx.webkitImageSmoothingEnabled = false;
-	// frameCtx.mozImageSmoothingEnabled = false;
-	// frameCtx.msImageSmoothingEnabled = false;
-	// frameCtx.imageSmoothingEnabled = false;
+	frameCtx.webkitImageSmoothingEnabled = false;
+	frameCtx.mozImageSmoothingEnabled = false;
+	frameCtx.msImageSmoothingEnabled = false;
+	frameCtx.imageSmoothingEnabled = false;
 	this.timer.stop();
 	this.timer.reset();
 	this.pauseInterval = 0;
