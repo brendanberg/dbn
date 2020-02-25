@@ -24,6 +24,7 @@ const emitBuiltins = () => {
 	const _plotlow_d = gensym();
 	const _plotlow_e = gensym();
 	const _plotlow_f = gensym();
+	const _plotlow_g = gensym();
 	
 	const _plothigh = gensym();
 	const _plothigh_a = gensym();
@@ -216,24 +217,24 @@ const emitBuiltins = () => {
 		Op.GET_ARGUMENT, 'x1',
 		Op.GET_ARGUMENT, 'x0',
 		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dx',
+		Op.SET_LOCAL, 'dx',     // Span of x
 		Op.GET_ARGUMENT, 'y1',
 		Op.GET_ARGUMENT, 'y0',
 		Op.SUBTRACT,
-		Op.SET_LOCAL, 'dy',
+		Op.SET_LOCAL, 'dy',     // Span of y
 		Op.CONSTANT, 1,
-		Op.SET_LOCAL, 'yi',
+		Op.SET_LOCAL, 'yi',     // Change in y
 		Op.GET_LOCAL, 'dy',
 		Op.CONSTANT, 0,
 		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE, _plotlow_a,
+		Op.JUMP_IF_NONNEGATIVE, _plotlow_a, // Compare dY - 0 > 0
 		Op.CONSTANT, -1,
 		Op.SET_LOCAL, 'yi',
 		Op.CONSTANT, 0,
 		Op.GET_LOCAL, 'dy',
 		Op.SUBTRACT,
 		Op.SET_LOCAL, 'dy',
-		Op.LABEL, _plotlow_a,
+		Op.LABEL, _plotlow_a, // dY - 0
 		Op.CONSTANT, 2,
 		Op.GET_LOCAL, 'dy',
 		Op.MULTIPLY,
@@ -275,6 +276,8 @@ const emitBuiltins = () => {
 		Op.ADD,
 		Op.SET_LOCAL, 'd',
 		Op.DUPLICATE,
+		Op.DUPLICATE,
+		Op.JUMP_IF_ZERO, _plotlow_g,
 		Op.JUMP_IF_NEGATIVE, _plotlow_d,
 		Op.GET_LOCAL, _plotlow_f,
 		Op.GET_LOCAL, 'x',
@@ -298,6 +301,7 @@ const emitBuiltins = () => {
 		Op.SUBTRACT,
 		Op.LABEL, _plotlow_e,
 		Op.JUMP_IF_NEGATIVE, _plotlow_b,
+		Op.LABEL, _plotlow_g,
 		Op.POP,
 		Op.STACK_FREE, 7,
 		Op.CONSTANT, 0,
