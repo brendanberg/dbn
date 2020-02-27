@@ -245,11 +245,11 @@ const emitBuiltins = () => {
 		Op.SET_LOCAL, 'y',
 		Op.GET_ARGUMENT, 'x0',
 		Op.DUPLICATE,
-		Op.SET_LOCAL, 'x',
+		Op.SET_LOCAL, 'x',        // leaves x0 on the stack
 		Op.GET_ARGUMENT, 'x1',
 		Op.DUPLICATE,
-		Op.SET_LOCAL, _plotlow_f,
-		Op.SUBTRACT,
+		Op.SET_LOCAL, _plotlow_f, // leaves x1 on the stack
+		Op.SUBTRACT,              // leaves x1 - x0 on the stack
 		Op.LABEL, _plotlow_b,
 		Op.GET_LOCAL, 'x',
 		Op.GET_LOCAL, 'y',
@@ -261,23 +261,23 @@ const emitBuiltins = () => {
 		Op.GET_LOCAL, 'y',
 		Op.GET_LOCAL, 'yi',
 		Op.ADD,
-		Op.SET_LOCAL, 'y',
+		Op.SET_LOCAL, 'y',        // y = y + yi
 		Op.GET_LOCAL, 'd',
 		Op.CONSTANT, 2,
 		Op.GET_LOCAL, 'dx',
 		Op.MULTIPLY,
 		Op.SUBTRACT,
-		Op.SET_LOCAL, 'd',
+		Op.SET_LOCAL, 'd',        // d = d - 2 * dx
 		Op.LABEL, _plotlow_c,
 		Op.GET_LOCAL, 'd',
 		Op.CONSTANT, 2,
 		Op.GET_LOCAL, 'dy',
 		Op.MULTIPLY,
 		Op.ADD,
-		Op.SET_LOCAL, 'd',
-		Op.DUPLICATE,
+		Op.SET_LOCAL, 'd',        // d = d + 2 * dy
 		Op.DUPLICATE,
 		Op.JUMP_IF_ZERO, _plotlow_g,
+		Op.DUPLICATE,
 		Op.JUMP_IF_NEGATIVE, _plotlow_d,
 		Op.GET_LOCAL, _plotlow_f,
 		Op.GET_LOCAL, 'x',
