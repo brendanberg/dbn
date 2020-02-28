@@ -367,6 +367,13 @@ DBN.prototype.run = function(source, callback) {
 		} else if (node.meta.type === 'statement') {
 			// We have the enclosing
 			if (node.canonical === 'Set') {
+				if (node.args.length != 2) {
+					throw {
+						message: '"Set" requires two parameters',
+						start: node.meta.start,
+						end: node.meta.end
+					};
+				}
 				if (node.args[0].meta.type === 'identifier') {
 					// Handle a normal l-value
 					const name = node.args[0].canonical;
@@ -381,10 +388,17 @@ DBN.prototype.run = function(source, callback) {
 							node.args[0].meta.bound = true;
 						}
 					}
-				} else {
+				} else if (node.args[0].meta.type === 'vector' || 
+						node.args[0].meta.type === 'connector') {
 					// Handle a vector or generator
 					node.args[0] = node.args[0].transform(resolveIdentifiers, outerMeta);
 					node.args[0].meta.lvalue = true;
+				} else {
+					throw {
+						message: '"Set" expects a variable name, pixel, or connector as its first parameter',
+						start: node.args[0].meta.start,
+						end: node.args[0].meta.end
+					}
 				}
 
 				node.args = node.args.slice(0, 1).concat(node.args.slice(1)
@@ -402,7 +416,7 @@ DBN.prototype.run = function(source, callback) {
 					const arity = outerMeta.commands[node.canonical].arity[0];
 						
 					throw {
-						message: ('"' + node.canonical + '" commands require '
+						message: ('"' + node.canonical + '" commands expect '
 							+ arity + ' parameter' + ((arity === 1) ? '' : 's')
 							+ '; found ' + node.args.length),
 						start: node.meta.start,
@@ -432,7 +446,7 @@ DBN.prototype.run = function(source, callback) {
 				const arity = outerMeta.numbers[node.canonical].arity[0];
 
 				throw {
-					message: ('"' + node.canonical + '" requires '
+					message: ('"' + node.canonical + '" expect '
 						+ arity + ' parameter' + ((arity === 1) ? '' : 's')
 						+ '; found ' + node.args.length),
 					start: node.meta.start,
@@ -468,7 +482,6 @@ DBN.prototype.run = function(source, callback) {
 			case 2:
 				return self.canvas.mouseY;
 			case 3:
-				console.log(self.canvas.mouseDown);
 				return self.canvas.mouseDown ? 100 : 0;
 			default:
 				return 0;
@@ -504,7 +517,7 @@ DBN.prototype.run = function(source, callback) {
 	});
 
 	const chunk = assemble(null, ast.emit(), ast.exports);
-	console.log('%c' + chunk.disassemble(), 'font-family:"Source Code Pro",monospace;');
+	//console.log('%c' + chunk.disassemble(), 'font-family:"Source Code Pro",monospace;');
 
 	timer.stop();
 
