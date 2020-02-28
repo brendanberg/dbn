@@ -67,6 +67,7 @@ VM.prototype.init = function(chunk) {
 	this.pixelStarts = new Int32Array(this.frame.width * this.frame.height);
 	this.pixelEnds = new Int32Array(this.frame.width * this.frame.height);
 
+	this.pen[0] = 0x000000FF;
 	this.pen[1] = 0xFFFFFFFF;
 	this.imageData = frameCtx.createImageData(this.frame.width, this.frame.height);
 	this.fillCanvas();
