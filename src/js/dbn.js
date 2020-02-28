@@ -166,6 +166,8 @@ DBN.prototype.run = function(source, callback) {
 		this.stop();
 	}
 
+	this.canvas.init();
+
 	const timer = new Timer();
 	timer.start();
 

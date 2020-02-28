@@ -51,6 +51,12 @@ const Canvas = function(paper) {
 	this.paperCtx.imageSmoothingEnabled = false;
 };
 
+Canvas.prototype.init = function() {
+	this.mouseX = 0;
+	this.mouseY = 0;
+	this.mouseDown = false;
+};
+
 Canvas.prototype.redraw = function(image) {
 	this.paperCtx.drawImage(image, 0, 0, image.width, image.height,
 			0, 0, this.width, this.height);
