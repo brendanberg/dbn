@@ -526,7 +526,22 @@ DBN.prototype.run = function(source, callback) {
 };
 
 DBN.prototype.step = function() {
-	this.vm.run();
+	try {
+		this.vm.run();
+	} catch(err) {
+		gtag('event', 'Runtime Error', {event_category: 'Execute Sketch'});
+		console.log(err);
+		// Trigger banner event with error object.
+		let evt = new CustomEvent('error', {
+			detail: {
+				message: err.message,
+				start: err.start,
+				end: err.end
+			}
+		});
+		window.dispatchEvent(evt);
+		throw err;
+	}
 
 	if (this.vm.completed) {
 		this.timer.stop();

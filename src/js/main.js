@@ -80,8 +80,6 @@ window.addEventListener('load', function(ee) {
 
 	const applyHighlights = (text, range, color) => {
 		// Insert <mark> tags to span start and end indexes
-		// 
-		
 		let output = '';
 
 		if (range.start && range.end && range.start < range.end) {
@@ -151,22 +149,19 @@ window.addEventListener('load', function(ee) {
 			isBannerPinned = true;
 
 			if (typeof err === 'object') {
-				banner.innerHTML = err.message;
-
-				if (err.start && err.end) {
-					// Highlight selection
-					const highlighted = applyHighlights(sketch.value, {
-						start: err.start.offset,
-						end: err.end.offset
-					});
-
-					highlights.innerHTML = highlighted;
-				} else {
-					console.error(err.stack);
-					throw err;
-				}
+				let evt = new CustomEvent('error', {
+					detail: {
+						message: err.message,
+						start: err.start,
+						end: err.end
+					}
+				});
+				window.dispatchEvent(evt);
 			} else {
-				banner.innerHTML = err;
+				let evt = new Event('error', {
+					message: err
+				});
+				window.dispatchEvent(evt);
 				console.error(err.stack);
 				throw err;
 			}
@@ -235,24 +230,22 @@ window.addEventListener('load', function(ee) {
 		const source = sketch.value;
 
 		try {
-			sketch.value = window.interpreter.beautify(source);/*, function() {
-				e.target.classList.remove('sticky');
-				isBannerPinned = true;
-				banner.innerHTML = 'Done.';
-				window.setTimeout(() => {
-					isBannerPinned = false;
-					banner.innerHTML = '';
-				}, 3000);
-			});*/
+			sketch.value = window.interpreter.beautify(source);
 		} catch (err) {
 			//ga('send', 'event', 'sketch', 'error', err.message);
-			//e.target.classList.remove('sticky');
-			isBannerPinned = true;
 
 			if (typeof err === 'object') {
-				banner.innerHTML = err.message;
+				let evt = new Event('error', {
+					detail: {
+						message: err.message,
+						start: err.start,
+						end: err.end
+					}
+				});
+				window.dispatchEvent(evt);
+				//banner.innerHTML = err.message;
 
-				if (err.start && err.end) {
+				/*if (err.start && err.end) {
 					// Highlight selection
 					const highlighted = applyHighlights(sketch.value, {
 						start: err.start.offset,
@@ -263,16 +256,53 @@ window.addEventListener('load', function(ee) {
 				} else {
 					console.error(err.stack);
 					throw err;
-				}
+				}*/
 			} else {
-				banner.innerHTML = err;
+				let evt = new Event('error', {
+					message: err
+				});
+				window.dispatchEvent(evt);
+				//banner.innerHTML = err;
 				console.error(err.stack);
 				throw err;
 			}
 		}
+
+		if (Event) {
+			let evt = new Event('input', {target: sketch});
+			sketch.dispatchEvent(evt);
+		} else if ('createEvent' in document) {
+			let evt = document.createEvent('TextEvent');
+			evt.initEvent('input', false, true);
+			evt.target = sketch;
+			sketch.dispatchEvent(evt);
+		} else {
+			sketch.fireEvent('input');
+		}
+	});
+
+	window.addEventListener('error', e => {
+		playBtn.classList.remove('sticky');
+		isBannerPinned = true;
+		banner.innerHTML = e.detail.message;
+
+		if (e.detail.start && e.detail.end) {
+			const highlighted = applyHighlights(sketch.value, {
+				start: e.detail.start.offset,
+				end: e.detail.end.offset
+			});
+
+			highlights.innerHTML = highlighted;
+		}
+
+		if (window.interpreter.running) {
+			// gtag('event', 'Stop', {event_category: 'Execute Sketch'});
+			window.interpreter.stop();
+		}
 	});
 
 	window.addEventListener('keydown', e => {
+		
 		if (e.altKey) {
 			paper.classList.add('screenshot');
 		}
