@@ -82,7 +82,7 @@ window.addEventListener('load', function(ee) {
 		// Insert <mark> tags to span start and end indexes
 		let output = '';
 
-		if (range.start && range.end && range.start < range.end) {
+		if ((range.start || range.end) && range.start < range.end) {
 			output = escapeEntities(text.slice(0, range.start));
 			output += '<mark>';
 			output += escapeEntities(text.slice(range.start, range.end));
