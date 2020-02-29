@@ -15,10 +15,7 @@ const assemble = function(label, assembly, exports) {
 	let outers = [];
 	let args = [];
 
-	const locations = [];
-	var index = 0;
-	var start = 0;
-	var end = 0;
+	let lastLocation = [0, 0];
 
 	for (let i = 0, len = assembly.length; i < len; i++) {
 		switch (assembly[i]) {
@@ -28,30 +25,56 @@ const assemble = function(label, assembly, exports) {
 				// the label dictionary. 
 				let label = assembly[++i];
 				if (labels.hasOwnProperty(label)) {
-					throw "redefinition of label '" + label + "'";
+					throw {
+						message: "redefinition of label '" + label + "'",
+						start: {offset: lastLocation[0]},
+						end: {offset: lastLocation[1]}
+					};
 				}
 
 				labels[label] = code.length;
 				break;
 			}
-			case Op.LOCATION: {
-				let newStart = assembly[++i];
-				let newEnd = assembly[++i];
+			case Op.LOCATION_PUSH: {
+				code.push(assembly[i]);
 
-				if (index && start && end) {
-					locations.push([index, start, end]);
+				// Start offset
+				let value = assembly[++i];
+				lastLocation[0] = value;
+				let idx = data.indexOf(value);
+
+				if (idx !== -1) {
+					code.push(idx);
+				} else {
+					code.push(data.length);
+					data.push(value);
 				}
 
-				index = code.length;
-				start = newStart;
-				end = newEnd;
+				// End offset
+				value = assembly[++i];
+				lastLocation[1] = value;
+				idx = data.indexOf(value);
+
+				if (idx !== -1) {
+					code.push(idx);
+				} else {
+					code.push(data.length);
+					data.push(value);
+				}
+				//code.push(assembly[i]);
+				//code.push(assembly[++i]);
+				//code.push(assembly[++i]);
 				break;
 			}
 			case Op.ARGUMENT: {
 				let arg = assembly[++i];
 
 				if (args.indexOf(arg) !== -1) {
-					throw "redefinition of argument '" + arg + "'";
+					throw {
+						message: "redefinition of argument '" + arg + "'",
+						start: {offset: lastLocation[0]},
+						end: {offset: lastLocation[1]}
+					};
 				}
 
 				args.push(arg);
@@ -129,7 +152,11 @@ const assemble = function(label, assembly, exports) {
 				let idx = locals.indexOf(name);
 				
 				if (idx === -1) {
-					throw ('encountered unknown variable ' + name);
+					throw {
+						message: 'encountered unknown variable ' + name,
+						start: {offset: lastLocation[0]},
+						end: {offset: lastLocation[1]}
+					};
 				} else {
 					code.push(idx);
 				}
@@ -156,7 +183,11 @@ const assemble = function(label, assembly, exports) {
 					code.push(arity);
 					code.push(exps[label]);
 				} else {
-					throw 'encountered unknown function ' + label;
+					throw {
+						message: 'encountered unknown function ' + label,
+						start: {offset: lastLocation[0]},
+						end: {offset: lastLocation[1]}
+					};
 				}
 
 				break;
@@ -198,6 +229,7 @@ const assemble = function(label, assembly, exports) {
 			case Op.UNPACK_RGB:
 			case Op.UNPACK_RGBA:
 			case Op.PAUSE:
+			case Op.LOCATION_POP:
 			case Op.RETURN: {
 				// These are all zero-argument opcodes
 				code.push(assembly[i]);
@@ -207,8 +239,8 @@ const assemble = function(label, assembly, exports) {
 				const hex = assembly[i].toString(16).toUpperCase();
 				throw {
 					message: 'unrecognized opcode 0x' + hex,
-					start: {offset: locations[locations.length - 1][1]},
-					end: {offset: locations[locations.length - 1][2]}
+					start: {offset: lastLocation[0]},
+					end: {offset: lastLocation[1]}
 				};
 		}
 	}
@@ -228,7 +260,6 @@ const assemble = function(label, assembly, exports) {
 	return new Chunk(code, data, {
 		label: label,
 		exports: exports,
-		locations: locations.slice(0).reverse()
 	});
 };
 

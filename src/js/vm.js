@@ -39,6 +39,7 @@ const VM = function(canvas, w, h) {
 	this.imageData = frameCtx.createImageData(width, height);
 	this.pixelStarts = null;
 	this.pixelEnds = null;
+	this.locationStack = [];
 
 	this.timer = new Timer();
 	this.pauseInterval = 0;
@@ -82,11 +83,10 @@ VM.prototype.redraw = function() {
 
 VM.prototype.explainPixel = function(x, y) {
 	const index = (x + y * this.imageData.width);
-	const start = this.pixelStarts[index];
-	const end = this.pixelEnds[index];
+
 	return {
-		start: {offset: start},
-		end: {offset: end}
+		start: {offset: this.pixelStarts[index]},
+		end: {offset: this.pixelEnds[index]}
 	};
 }
 
@@ -220,8 +220,11 @@ VM.prototype.writePixel = function(x, y) { // r, g, b) {
 	this.imageData.data[index * 4 + 2] = this.pen[1] >> 8 & 0xFF;
 	this.imageData.data[index * 4 + 3] = 255;
 
-	this.pixelStarts[index] = this.chunk.getStartLocation(this.ip).offset;
-	this.pixelEnds[index] = this.chunk.getEndLocation(this.ip).offset;
+	const span = this.locationStack[this.locationStack.length - 1];
+	if (span) {
+		this.pixelStarts[index] = span[0];
+		this.pixelEnds[index] = span[1];
+	}
 };
 
 VM.prototype.fillCanvas = function() { //r, g, b) {
@@ -230,22 +233,23 @@ VM.prototype.fillCanvas = function() { //r, g, b) {
 	let end;
 
 	if (this.chunk) {
-		start = this.chunk.getStartLocation(this.ip).offset;
-		end = this.chunk.getEndLocation(this.ip).offset;
+		const span = this.locationStack[this.locationStack.length - 1];
+		if (span) {
+			[start, end] = span;
+		}
 	} else {
 		start = end = 0;
 	}
 
-	for (let i = 0, len=(width*height); i < len; i++) { // += 4) {
+
+	for (let i = 0, len=(width*height); i < len; i++) {
 		this.imageData.data[i * 4 + 0] = this.pen[1] >> 24 & 0xFF;
 		this.imageData.data[i * 4 + 1] = this.pen[1] >> 16 & 0xFF;
 		this.imageData.data[i * 4 + 2] = this.pen[1] >> 8 & 0xFF;
 		this.imageData.data[i * 4 + 3] = 255;
 
-		if (this.chunk) {
-			this.pixelStarts[i] = start;
-			this.pixelEnds[i] = end;
-		}
+		this.pixelStarts[i] = start;
+		this.pixelEnds[i] = end;
 	}
 };
 
@@ -287,10 +291,11 @@ VM.prototype.run = function() {
 				const index = this.fp - chunk.code[this.ip++] - 2;
 
 				if (index < 0 || index >= this.sp) {
+					const lastLocation = this.locationStack.pop();
 					throw {
 						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
+						start: lastLocation[0],
+						end: lastLocation[1]
 					};
 					//return INTERPRET_RESULT_RUNTIME_ERROR;
 				}
@@ -302,10 +307,11 @@ VM.prototype.run = function() {
 				const index = this.fp - chunk.code[this.ip++] - 2;
 
 				if (index < 0 || index >= this.sp) {
+					const lastLocation = this.locationStack.pop();
 					throw {
 						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
+						start: lastLocation[0],
+						end: lastLocation[1]
 					};
 					//return INTERPRET_RESULT_RUNTIME_ERROR;
 				}
@@ -317,10 +323,11 @@ VM.prototype.run = function() {
 				const index = this.fp + chunk.code[this.ip++] + 1;
 
 				if (index < 0 || index >= this.sp) {
+					const lastLocation = this.locationStack.pop();
 					throw {
 						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
+						start: lastLocation[0],
+						end: lastLocation[1]
 					};
 					//return INTERPRET_RESULT_RUNTIME_ERROR;
 				}
@@ -333,10 +340,11 @@ VM.prototype.run = function() {
 				const index = this.fp + offset + 1;
 
 				if (index < 0 || index >= this.sp) {
+					const lastLocation = this.locationStack.pop();
 					throw {
 						message: 'runtime error',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
+						start: lastLocation[0],
+						end: lastLocation[1]
 					};
 					//return INTERPRET_RESULT_RUNTIME_ERROR;
 				}
@@ -608,10 +616,11 @@ VM.prototype.run = function() {
 				const index = chunk.code[this.ip++];
 
 				if (index < 0 || index >= chunk.exports.length) {
+					const lastLocation = this.locationStack.pop();
 					throw {
 						message: 'host function index out of bounds',
-						start: chunk.getStartLocation(this.ip),
-						end: chunk.getEndLocation(this.ip)
+						start: lastLocation[0],
+						end: lastLocation[1]
 					};
 					//throw 'host function index out of bounds';
 				}
@@ -639,15 +648,26 @@ VM.prototype.run = function() {
 				this.ip = this.callStack[--this.sp];
 				break;
 			}
+			case Op.LOCATION_PUSH: {
+				const start = chunk.data[chunk.code[this.ip++]];
+				const end = chunk.data[chunk.code[this.ip++]];
+				this.locationStack.push([start, end]);
+				break;
+			}
+			case Op.LOCATION_POP: {
+				this.locationStack.pop();
+				break;
+			}
 			case Op.REDRAW: {
 				this.redraw();
 				return;
 			}
 			default: {
+				const lastLocation = this.locationStack.pop();
 				throw {
 					message: 'unrecognized opcode ' + instr,
-					start: chunk.getStartLocation(this.ip),
-					end: chunk.getEndLocation(this.ip)
+					start: lastLocation[0],
+					end: lastLocation[1]
 				};
 				//console.error('unrecognized opcode', instr);
 				//return INTERPRET_RESULT_RUNTIME_ERROR;

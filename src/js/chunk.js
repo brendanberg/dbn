@@ -4,7 +4,6 @@ const Chunk = function (code, data, options) {
 	options = options || {exports: null, locations: null, label: null};
 	this.label = options.label;
 	this.exports = options.exports || [];
-	this.locations = options.locations || [];
 	this.code = new Uint8Array(code);
 	this.data = new Int32Array(data);
 };
@@ -14,7 +13,7 @@ Chunk.prototype.disassemble = function() {
 	const addrs = [];
 	const offsets = {};
 	const labels = {};
-
+	const locs = [0, 0];
 	const exps = this.exports.map(func => func.name);
 
 	for (let i = 0, len = this.code.length; i < len; i++) {
@@ -277,8 +276,8 @@ Chunk.prototype.disassemble = function() {
 				if (index < 0 || index >= exps.length) {
 					throw {
 						message: 'host function index out of bounds',
-						start: this.getStartLocation(i),
-						end: this.getEndLocation(i)
+						start: locs[0],
+						end: locs[1]
 					};
 				}
 
@@ -294,6 +293,19 @@ Chunk.prototype.disassemble = function() {
 				instrs.push('\t----------');
 				break;
 			}
+			case Op.LOCATION_PUSH: {
+				//offsets[i] = instrs.length;
+				const start = this.data[this.code[++i]];
+				const end = this.data[this.code[++i]];
+				locs[0] = start;
+				locs[1] = end;
+				instrs.push('\tLOCATION_PUSH ' + start + ' ' + end);
+				break;
+			}
+			case Op.LOCATION_POP: {
+				instrs.push('\tLOCATION_POP');
+				break;
+			}
 			case Op.HALT: {
 				addrs.push('    ');
 				offsets[i] = instrs.length;
@@ -306,8 +318,8 @@ Chunk.prototype.disassemble = function() {
 				const hex = this.code[i].toString(16).toUpperCase();
 				throw {
 					message: 'unrecognized opcode 0x' + hex,
-					start: this.getStartLocation(i),
-					end: this.getEndLocation(i)
+					start: locs[0],
+					end: locs[1]
 				};
 			}
 		}
@@ -337,15 +349,4 @@ Chunk.prototype.disassemble = function() {
 	return instrs.join('\n');
 };
 
-Chunk.prototype.getStartLocation = function (offset) {
-	let loc = this.locations.find(elt => elt[0] <= offset) || 0;
-	return {offset: loc[1]};
-};
-
-Chunk.prototype.getEndLocation = function (offset) {
-	let loc = this.locations.find(elt => elt[0] <= offset) || 0;
-	return {offset: loc[2]};
-};
-
 export default Chunk;
-

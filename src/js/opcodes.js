@@ -45,7 +45,8 @@ export const HALT = 0x00,
 	INVOKE = 0x81,
 	RETURN = 0x8F,
 
-	LOCATION = 0xFD,
+	LOCATION_PUSH = 0xFB,
+	LOCATION_POP = 0xFC,
 	ARGUMENT = 0xFE,
 	LABEL = 0xFF;
 

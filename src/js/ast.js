@@ -694,8 +694,7 @@ AST.Vector.prototype.indent = function () {
 };
 
 AST.Operator.prototype.indent = function() {
-	let expressionString = (this.lhs.indent(0) + ' ' + 
-		this.operator + ' ' + this.rhs.indent(0));
+	let expressionString = (this.lhs.indent(0) + this.operator + this.rhs.indent(0));
 
 	if (this.parenthesized) {
 		return '(' + expressionString + ')';
@@ -838,11 +837,10 @@ AST.Loop.prototype.emit = function() {
 
 	// Special case for infinite loops!
 	if (this.iterator === null && this.start === null && this.stop === null) {
-		return [Op.LABEL, _body]
+		return [Op.LOCATION_PUSH, start, end, Op.LABEL, _body]
 			.concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LOCATION, start, end])
 			.concat(this.meta.inner ? [Op.REDRAW] : [])
-			.concat(Op.JUMP, _body);
+			.concat(Op.JUMP, _body, Op.LOCATION_POP);
 	}
 
 	const isArgument = this.meta.argument === true;
@@ -852,18 +850,15 @@ AST.Loop.prototype.emit = function() {
 	const _increment = AST.tools.gensym();
 	const _break = AST.tools.gensym();
 
-	return this.stop.emit().concat([
-		Op.LOCATION, start, end,
+	return [Op.LOCATION_PUSH, start, end].concat(this.stop.emit()).concat([
 		Op.DUPLICATE,
 	]).concat(this.start.emit()).concat([
-		Op.LOCATION, start, end,
 		Op.DUPLICATE,
 		store_iterator, this.iterator.canonical,
 		Op.SUBTRACT,
 		Op.DUPLICATE,
 		Op.LABEL, _body,
 	]).concat(this.statements.flatMap(s => s.emit())).concat([
-		Op.LOCATION, start, end,
 		Op.JUMP_IF_ZERO, _break,
 		Op.JUMP_IF_NONNEGATIVE, _increment,
 
@@ -893,6 +888,7 @@ AST.Loop.prototype.emit = function() {
 		Op.LABEL, _break,
 		Op.POP,
 		Op.POP,
+		Op.LOCATION_POP
 	]);
 }
 
@@ -909,21 +905,20 @@ AST.Condition.prototype.emit = function() {
 	if (this.predicate.meta.type === 'not') {
 		const bodylabel = AST.tools.gensym();
 
-		return [Op.LOCATION, start, end]
+		return [Op.LOCATION_PUSH, start, end]
 			.concat(this.predicate.emit())
 			.concat([
 				bodylabel,
-				Op.LOCATION, start, end,
 				Op.JUMP, endlabel,
 				Op.LABEL, bodylabel])
 			.concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LOCATION, start, end, Op.LABEL, endlabel]);
+			.concat([Op.LABEL, endlabel, Op.LOCATION_POP]);
 	} else {
-		return [Op.LOCATION, start, end]
+		return [Op.LOCATION_PUSH, start, end]
 			.concat(this.predicate.emit())
 			.concat([endlabel])
 			.concat(this.statements.flatMap(s => s.emit()))
-			.concat([Op.LOCATION, start, end, Op.LABEL, endlabel]);
+			.concat([Op.LABEL, endlabel, Op.LOCATION_POP]);
 	}
 };
 
@@ -935,22 +930,22 @@ AST.LessThan.prototype.emit = function() {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	return this.lhs.emit().concat(this.rhs.emit()).concat([
-		Op.LOCATION, start, end,
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONNEGATIVE
-	]);
+	return this.lhs.emit()
+		.concat(this.rhs.emit()).concat([
+			Op.SUBTRACT,
+			Op.JUMP_IF_NONNEGATIVE,
+		]);
 };
 
 AST.Equals.prototype.emit = function() {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	return this.lhs.emit().concat(this.rhs.emit()).concat([
-		Op.LOCATION, start, end,
-		Op.SUBTRACT,
-		Op.JUMP_IF_NONZERO
-	]);
+	return this.lhs.emit()
+		.concat(this.rhs.emit()).concat([
+			Op.SUBTRACT,
+			Op.JUMP_IF_NONZERO,
+		]);
 };
 
 AST.Command.prototype.emit = function() {
@@ -958,21 +953,21 @@ AST.Command.prototype.emit = function() {
 	const end = this.meta.end.offset;
 
 	return ([
-		Op.LOCATION, start, end,
+		Op.LOCATION_PUSH, start, end,
 		Op.LABEL, this.name.canonical,
 		Op.STACK_ALLOC, this.meta.locals.length + this.meta.unbound.length])
 	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
 	.concat(this.args.slice(0).reverse().flatMap(a => [Op.SET_ARGUMENT, a.canonical]))
 	.concat(this.meta.unbound.slice(0).reverse().flatMap(a => [Op.SET_LOCAL, a]))
 	.concat(this.statements.flatMap(s => s.emit()))
-	.concat([
-		Op.LOCATION, start, end,
-		Op.CONSTANT, 0])
+	.concat([Op.CONSTANT, 0])
 	.concat(this.meta.unbound.slice(0).reverse().flatMap(a => [Op.GET_LOCAL, a]))
 	.concat([
 		Op.STACK_FREE, this.meta.locals.length + this.meta.unbound.length,
 		Op.RETURN])
-	.concat(this.definitions.flatMap(d => d.emit()));
+	.concat(this.definitions.flatMap(d => d.emit())).concat([
+		Op.LOCATION_POP
+	]);
 };
 
 AST.Number.prototype.emit = function(ctx) {
@@ -980,7 +975,7 @@ AST.Number.prototype.emit = function(ctx) {
 	const end = this.meta.end.offset;
 
 	return ([
-		Op.LOCATION, start, end,
+		Op.LOCATION_PUSH, start, end,
 		Op.LABEL, this.name.canonical,
 		Op.STACK_ALLOC, this.meta.locals.length + this.meta.unbound.length])
 	.concat(this.args.flatMap(a => [Op.ARGUMENT, a.canonical]))
@@ -989,10 +984,9 @@ AST.Number.prototype.emit = function(ctx) {
 	.concat(this.statements.flatMap(s => s.emit()))
 	.concat(this.meta.unbound.flatMap(a => [Op.GET_LOCAL, a]))
 	.concat([
-		Op.LOCATION, start, end,
 		Op.STACK_FREE, this.meta.locals.length + this.meta.unbound.length,
 		Op.RETURN])
-	.concat(this.definitions.flatMap(d => d.emit()));
+	.concat(this.definitions.flatMap(d => d.emit())).concat([Op.LOCATION_POP]);
 };
 
 AST.Statement.prototype.emit = function(ctx) {
@@ -1002,42 +996,10 @@ AST.Statement.prototype.emit = function(ctx) {
 	switch (this.canonical) {
 		case 'Paper': {
 			if (this.args.length === 1) {
-				return [Op.LOCATION, start, end, Op.REDRAW, Op.CONSTANT, 255]
-					.concat(this.args[0].emit()).concat([
-						Op.LOCATION, start, end,
-						Op.CONSTANT, 0,
-						Op.CONSTANT, 100,
-						Op.CLAMP,
-						Op.CONSTANT, 255,
-						Op.MULTIPLY,
-						Op.CONSTANT, 100,
-						Op.DIVIDE,
-						Op.SUBTRACT,
-						Op.PACK_GRAY,
-						Op.FILL_CANVAS,
-					]);
-			} else {
-				return [Op.REDRAW].concat(this.args
-					.flatMap(x => {
-						return x.emit().concat([
-							Op.LOCATION, start, end,
-							Op.CONSTANT, 0,
-							Op.CONSTANT, 100,
-							Op.CLAMP,
-							Op.CONSTANT, 255,
-							Op.MULTIPLY,
-							Op.CONSTANT, 100,
-							Op.DIVIDE
-						])
-					})).concat([Op.LOCATION, start, end, Op.PACK_RGB, Op.FILL_CANVAS]);
-			}
-		}
-		case 'Pen': {
-			if (this.args.length === 1) {
-				let rvalue = this.args[0].emit();
-
-				return [Op.LOCATION, start, end, Op.CONSTANT, 255].concat(rvalue).concat([
-					Op.LOCATION, start, end,
+				return ([
+					Op.LOCATION_PUSH, start, end, 
+					Op.REDRAW, Op.CONSTANT, 255
+				]).concat(this.args[0].emit()).concat([
 					Op.CONSTANT, 0,
 					Op.CONSTANT, 100,
 					Op.CLAMP,
@@ -1047,23 +1009,67 @@ AST.Statement.prototype.emit = function(ctx) {
 					Op.DIVIDE,
 					Op.SUBTRACT,
 					Op.PACK_GRAY,
-					Op.SET_PEN_COLOR
+					Op.FILL_CANVAS,
+					Op.LOCATION_POP
 				]);
 			} else {
-				return this.args
-					.map(x => {
-						return x.emit().concat([
-							Op.LOCATION, start, end,
-							Op.CONSTANT, 0,
-							Op.CONSTANT, 100,
-							Op.CLAMP,
-							Op.CONSTANT, 255,
-							Op.MULTIPLY,
-							Op.CONSTANT, 100,
-							Op.DIVIDE
-						])
-					}).reduce((a, b) => a.concat(b), [])
-					.concat([Op.LOCATION, start, end, Op.PACK_RGB, Op.SET_PEN_COLOR]);
+				return ([
+					Op.LOCATION_PUSH, start, end, Op.REDRAW
+				]).concat(this.args.flatMap(x => {
+					return x.emit().concat([
+						Op.CONSTANT, 0,
+						Op.CONSTANT, 100,
+						Op.CLAMP,
+						Op.CONSTANT, 255,
+						Op.MULTIPLY,
+						Op.CONSTANT, 100,
+						Op.DIVIDE
+					]);
+				})).concat([
+					Op.PACK_RGB,
+					Op.FILL_CANVAS,
+					Op.LOCATION_POP
+				]);
+			}
+		}
+		case 'Pen': {
+			if (this.args.length === 1) {
+				let rvalue = this.args[0].emit();
+
+				return ([
+					Op.LOCATION_PUSH, start, end, 
+					Op.CONSTANT, 255
+				]).concat(rvalue).concat([
+					Op.CONSTANT, 0,
+					Op.CONSTANT, 100,
+					Op.CLAMP,
+					Op.CONSTANT, 255,
+					Op.MULTIPLY,
+					Op.CONSTANT, 100,
+					Op.DIVIDE,
+					Op.SUBTRACT,
+					Op.PACK_GRAY,
+					Op.SET_PEN_COLOR,
+					Op.LOCATION_POP
+				]);
+			} else {
+				return ([
+					Op.LOCATION_PUSH, start, end
+				]).concat(this.args.map(x => {
+					return x.emit().concat([
+						Op.CONSTANT, 0,
+						Op.CONSTANT, 100,
+						Op.CLAMP,
+						Op.CONSTANT, 255,
+						Op.MULTIPLY,
+						Op.CONSTANT, 100,
+						Op.DIVIDE
+					])
+				})).concat([
+					Op.PACK_RGB,
+					Op.SET_PEN_COLOR,
+					Op.LOCATION_POP
+				]);
 			}
 		}
 		case 'Set': {
@@ -1073,63 +1079,82 @@ AST.Statement.prototype.emit = function(ctx) {
 				let rvalue = this.args[1].emit();
 
 				if (this.args[1].meta.type === 'vector') {
-					return lvalue.concat(rvalue).concat([
-						Op.LOCATION, start, end,
+					return ([
+						Op.LOCATION_PUSH, start, end
+					]).concat(lvalue).concat(rvalue).concat([
 						Op.PACK_GRAY,
-						Op.WRITE_PIXEL]);
+						Op.WRITE_PIXEL,
+						Op.LOCATION_POP
+					]);
 				} else {
-					return lvalue.concat([Op.LOCATION, start, end, Op.CONSTANT, 255])
-						.concat(rvalue)
-						.concat([
-							Op.LOCATION, start, end,
-							Op.CONSTANT, 0,
-							Op.CONSTANT, 100,
-							Op.CLAMP,
-							Op.CONSTANT, 255,
-							Op.MULTIPLY,
-							Op.CONSTANT, 100,
-							Op.DIVIDE,
-							Op.SUBTRACT,
-							Op.PACK_GRAY,
-							Op.WRITE_PIXEL
+					return ([
+						Op.LOCATION_PUSH, start, end
+					]).concat(lvalue).concat([
+						Op.CONSTANT, 255
+					]).concat(rvalue).concat([
+						Op.CONSTANT, 0,
+						Op.CONSTANT, 100,
+						Op.CLAMP,
+						Op.CONSTANT, 255,
+						Op.MULTIPLY,
+						Op.CONSTANT, 100,
+						Op.DIVIDE,
+						Op.SUBTRACT,
+						Op.PACK_GRAY,
+						Op.WRITE_PIXEL,
+						Op.LOCATION_POP
 					]);
 				}
 			} else if (this.args[0].meta.type === 'connector') {
 				// The statement is in the form Set <Array 0> 100
 				const gen = this.args[0];
-				return gen.args.flatMap(a => a.emit())
+				return ([Op.LOCATION_PUSH, start, end])
+					.concat(gen.args.flatMap(a => a.emit()))
 					.concat(this.args[1].emit())
 					.concat([
-						Op.LOCATION, start, end,
 						Op.STACK_ALLOC, gen.args.length + 1,
 						Op.CALL, gen.canonical + '_set',
 						Op.STACK_FREE, gen.args.length + 1,
-						Op.POP
+						Op.POP,
+						Op.LOCATION_POP
 					]);
 			} else {
 				let rvalue = this.args[1].emit();
 
 				if (this.args[0].meta.argument === true) {
-					return rvalue.concat([Op.SET_ARGUMENT, this.args[0].canonical]);
+					return ([Op.LOCATION_PUSH, start, end])
+						.concat(rvalue)
+						.concat([
+							Op.SET_ARGUMENT, this.args[0].canonical,
+							Op.LOCATION_POP
+						]);
 				} else {
-					return rvalue.concat([Op.SET_LOCAL, this.args[0].canonical]);
+					return ([Op.LOCATION_PUSH, start, end])
+						.concat(rvalue)
+						.concat([
+							Op.SET_LOCAL, this.args[0].canonical,
+							Op.LOCATION_POP
+						]);
 				}
 			}
 		}
 		case 'Line': {
-			return this.args.flatMap(a => a.emit())
+			return ([Op.LOCATION_PUSH, start, end])
+				.concat(this.args.flatMap(a => a.emit()))
 				.concat([
-					Op.LOCATION, start, end,
 					Op.STACK_ALLOC, 4,
 					Op.CALL, 'line',
 					Op.STACK_FREE, 4,
-					Op.POP
+					Op.POP,
+					Op.LOCATION_POP
 				]);
 		}
 		case 'Value': {
 			// TODO: This is essentially a return statement but it kind of
 			// has to go at the end of the function definition.
-			return this.args[0].emit();
+			return ([Op.LOCATION_PUSH, start, end])
+				.concat(this.args[0].emit())
+				.concat([Op.LOCATION_POP]);
 			/*
 			.concat([
 				Op.STACK_FREE, 0,
@@ -1137,26 +1162,26 @@ AST.Statement.prototype.emit = function(ctx) {
 			]);*/
 		}
 		case 'Pause': {
-			return [Op.LOCATION, start, end]
+			return [Op.LOCATION_PUSH, start, end]
 				.concat(this.args[0].emit())
-				.concat(Op.PAUSE);
+				.concat(Op.PAUSE, Op.LOCATION_POP);
 		}
 		case 'Refresh': {
-			return [Op.LOCATION, start, end, Op.REDRAW];
+			return [Op.LOCATION_PUSH, start, end, Op.REDRAW, Op.LOCATION_POP];
 		}
 		default: {
 			// At this point all we're left with are function calls I guess
-			return [Op.LOCATION, start, end]
+			return [Op.LOCATION_PUSH, start, end]
 				.concat(this.meta.unbound.flatMap(id => [Op.GET_LOCAL, id]))
 				.concat(this.args.flatMap(a => a.emit()))
 				.concat([
-					Op.LOCATION, start, end,
 					Op.STACK_ALLOC, this.args.length,
 					Op.CALL, this.canonical,
 					Op.STACK_FREE, this.args.length,
 					Op.POP
 				])
-				.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]));
+				.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]))
+				.concat([Op.LOCATION_POP]);
 		}
 	}
 };
@@ -1165,16 +1190,16 @@ AST.Generator.prototype.emit = function(ctx) {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	return [Op.LOCATION, start, end]
+	return [Op.LOCATION_PUSH, start, end]
 		.concat(this.meta.unbound.flatMap(id => [Op.GET_LOCAL, id]))
 		.concat(this.args.flatMap(a => a.emit()))
 		.concat([
-			Op.LOCATION, start, end,
 			Op.STACK_ALLOC, this.args.length,
 			Op.CALL, this.canonical,
 			Op.STACK_FREE, this.args.length
 		])
-		.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]));
+		.concat(this.meta.unbound.slice(0).reverse().flatMap(id => [Op.SET_LOCAL, id]))
+		.concat([Op.LOCATION_POP]);
 };
 
 AST.Identifier.prototype.emit = function() {
@@ -1182,9 +1207,9 @@ AST.Identifier.prototype.emit = function() {
 	const end = this.meta.end.offset;
 
 	if (this.meta.argument === true) {
-		return [Op.LOCATION, start, end, Op.GET_ARGUMENT, this.canonical];
+		return [Op.LOCATION_PUSH, start, end, Op.GET_ARGUMENT, this.canonical, Op.LOCATION_POP];
 	} else {
-		return [Op.LOCATION, start, end, Op.GET_LOCAL, this.canonical];
+		return [Op.LOCATION_PUSH, start, end, Op.GET_LOCAL, this.canonical, Op.LOCATION_POP];
 	}
 };
 
@@ -1192,11 +1217,16 @@ AST.Integer.prototype.emit = function() {
 	const start = this.meta.start.offset;
 	const end = this.meta.end.offset;
 
-	return [Op.LOCATION, start, end, Op.CONSTANT, this.value];
+	return [Op.LOCATION_PUSH, start, end, Op.CONSTANT, this.value, Op.LOCATION_POP];
 };
 
 AST.Vector.prototype.emit = function() {
-	return (this.meta.lvalue ? [] : [Op.CONSTANT, 100])
+	const start = this.meta.start.offset;
+	const end = this.meta.end.offset;
+
+	return ([
+		Op.LOCATION_PUSH, start, end
+	]).concat(this.meta.lvalue ? [] : [Op.CONSTANT, 100])
 		.concat(this.values.flatMap((x) => x.emit()))
 		.concat(this.meta.lvalue ? [] : [
 			Op.READ_PIXEL, 
@@ -1205,7 +1235,8 @@ AST.Vector.prototype.emit = function() {
 			Op.MULTIPLY,
 			Op.CONSTANT, 255,
 			Op.DIVIDE,
-			Op.SUBTRACT
+			Op.SUBTRACT,
+			Op.LOCATION_POP
 		]);
 };
 
@@ -1221,9 +1252,9 @@ AST.Operator.prototype.emit = function() {
 		'%': Op.REMAINDER,
 	};
 	
-	return this.lhs.emit()
+	return ([Op.LOCATION_PUSH, start, end]).concat(this.lhs.emit())
 		.concat(this.rhs.emit())
-		.concat(Op.LOCATION, start, end, opcodes[this.operator]);
+		.concat(opcodes[this.operator], Op.LOCATION_POP);
 };
 
 AST.Comment.prototype.emit = function() { return []; }

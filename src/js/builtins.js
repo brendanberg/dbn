@@ -42,7 +42,6 @@ const emitBuiltins = () => {
 	const _field_f = gensym();
 
 	return [
-		Op.LOCATION, 0, 0,
 		Op.LABEL, 'abs',
 		Op.STACK_ALLOC, 0,
 		Op.DUPLICATE,
