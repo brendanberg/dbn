@@ -40,8 +40,10 @@ const VM = function(canvas, w, h) {
 	this.pixelStarts = null;
 	this.pixelEnds = null;
 	this.locationStack = [];
+	this.redrawEnabled = true;
 
-	this.timer = new Timer();
+	this.pauseTimer = new Timer();
+	this.executionTimer = null;
 	this.pauseInterval = 0;
 };
 
@@ -61,9 +63,10 @@ VM.prototype.init = function(chunk) {
 	frameCtx.mozImageSmoothingEnabled = false;
 	frameCtx.msImageSmoothingEnabled = false;
 	frameCtx.imageSmoothingEnabled = false;
-	this.timer.stop();
-	this.timer.reset();
+	this.pauseTimer.stop();
+	this.pauseTimer.reset();
 	this.pauseInterval = 0;
+	this.executionTimer = new Timer();
 
 	this.pixelStarts = new Int32Array(this.frame.width * this.frame.height);
 	this.pixelEnds = new Int32Array(this.frame.width * this.frame.height);
@@ -259,10 +262,10 @@ VM.prototype.run = function() {
 	// execute the loop body if the instruction is not Op.HALT
 
 	// TODO: replace this with an isRunning state flag
-	if (this.timer.startTime) {
-		if (this.timer.elapsed() >= this.pauseInterval) {
-			this.timer.stop();
-			this.timer.reset();
+	if (this.pauseTimer.startTime) {
+		if (this.pauseTimer.elapsed() >= this.pauseInterval) {
+			this.pauseTimer.stop();
+			this.pauseTimer.reset();
 			this.pauseInterval = 0;
 		} else {
 			return;
@@ -271,6 +274,7 @@ VM.prototype.run = function() {
 	const chunk = this.chunk;
 	const timer = new Timer();
 	timer.start();
+	this.executionTimer.start();
 
 	let cycles = 0;
 	let instr = Op.HALT;
@@ -575,7 +579,8 @@ VM.prototype.run = function() {
 				// program execution.
 				const interval = this.exprStack[--this.ep];
 				this.pauseInterval = interval * 10;
-				this.timer.start();
+				this.pauseTimer.start();
+				this.executionTimer.stop();
 				return;
 			}
 			case Op.STACK_ALLOC: {
@@ -659,7 +664,20 @@ VM.prototype.run = function() {
 				break;
 			}
 			case Op.REDRAW: {
+				if (this.redrawEnabled) {
+					this.redraw();
+					this.executionTimer.stop();
+					return;
+				}
+				break;
+			}
+			case Op.REDRAW_OFF: {
+				this.redrawEnabled = false;
+				break;
+			}
+			case Op.REDRAW_FORCE: {
 				this.redraw();
+				this.executionTimer.stop();
 				return;
 			}
 			default: {
@@ -681,12 +699,14 @@ VM.prototype.run = function() {
 		// We use requestAnimationFrame to restart execution.
 		if (cycles > 1000) {
 			if (timer.elapsed() > 50) {
+				this.executionTimer.stop();
 				return;
 			}
 			cycles = 0;
 		}
 	}
 
+	this.executionTimer.stop();
 	this.completed = true;
 	this.redraw();
 

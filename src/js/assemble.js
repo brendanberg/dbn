@@ -221,6 +221,8 @@ const assemble = function(label, assembly, exports) {
 			case Op.FILL_PIXEL:
 			case Op.FILL_CANVAS:
 			case Op.REDRAW:
+			case Op.REDRAW_OFF:
+			case Op.REDRAW_FORCE:
 			case Op.CLAMP:
 			case Op.PACK_GRAY:
 			case Op.PACK_RGB:

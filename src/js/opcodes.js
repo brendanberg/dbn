@@ -21,6 +21,8 @@ export const HALT = 0x00,
 	FILL_PIXEL = 0x43,
 	FILL_CANVAS = 0x44,
 	REDRAW = 0x45,
+	REDRAW_OFF = 0x46,
+	REDRAW_FORCE = 0x47,
 
 	CLAMP = 0x49,
 	PACK_GRAY = 0x4A,

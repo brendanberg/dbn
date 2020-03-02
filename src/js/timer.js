@@ -9,17 +9,20 @@ Timer.prototype.start = function() {
 };
 
 Timer.prototype.stop = function() {
-	this.elapsedTime += this.elapsed();
-	this.startTime = 0;
+	if (this.startTime) {
+		this.elapsedTime = this.elapsed();
+		this.startTime = 0;
+	}
 };
 
 Timer.prototype.reset = function() {
+	this.startTime = 0;
 	this.elapsedTime = 0;
 };
 
 Timer.prototype.elapsed = function() {
-	const elapsed = this.startTime ? (new Date()).getTime() - this.startTime : 0;
-	return this.elapsedTime + elapsed;
+	const delta = this.startTime ? (new Date()).getTime() - this.startTime : 0;
+	return this.elapsedTime + delta;
 };
 
 export default Timer;

@@ -25,6 +25,7 @@ const AST = {
 				'number': 'Number',
 				'pause': 'Pause',
 				'refresh': 'Refresh',
+				'norefresh': 'NoRefresh',
 				'mouse': 'Mouse',
 				'key': 'Key',
 				'time': 'Time',
@@ -54,6 +55,8 @@ const AST = {
 		'Value',
 		'Repeat',
 		'Forever',
+		'Refresh',
+		'NoRefresh',
 		'Same?',
 		'NotSame?',
 		'Smaller?',
@@ -261,7 +264,9 @@ const AST = {
 		'Line': {arity: [4], unbound: []},
 		'Field': {arity: [5], unbound: []},
 		'Value': {arity: [1], unbound: []},
-		'Pause': {arity: [1], unbound: []}
+		'Pause': {arity: [1], unbound: []},
+		'Refresh': {arity: [0], unbound: []},
+		'NoRefresh': {arity: [0], unbound: []},
 	},
 
 	Program: function (statements, meta) {
@@ -1167,7 +1172,10 @@ AST.Statement.prototype.emit = function(ctx) {
 				.concat(Op.PAUSE, Op.LOCATION_POP);
 		}
 		case 'Refresh': {
-			return [Op.LOCATION_PUSH, start, end, Op.REDRAW, Op.LOCATION_POP];
+			return [Op.LOCATION_PUSH, start, end, Op.REDRAW_FORCE, Op.LOCATION_POP];
+		}
+		case 'NoRefresh': {
+			return [Op.LOCATION_PUSH, start, end, Op.REDRAW_OFF, Op.LOCATION_POP];
 		}
 		default: {
 			// At this point all we're left with are function calls I guess
