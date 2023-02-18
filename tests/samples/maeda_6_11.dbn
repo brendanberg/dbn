@@ -1,0 +1,7 @@
+Paper 0
+// lines to the left are lighter
+Ropeat A 20 80
+{
+    Pen A
+    Line A 40 A 70
+}

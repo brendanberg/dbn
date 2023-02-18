@@ -1,0 +1,7 @@
+Paper 0
+// lower lines are lighter
+Repeat A 40 70
+{
+    Pen A
+    Line 20 A 80 A
+}

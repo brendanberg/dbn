@@ -1,0 +1,7 @@
+// Set the paper type
+Paper 20
+// Set the pen
+Pen 80
+// Draw a line from the lower left
+// corner to the upper right corner
+Line 0 0 100 100

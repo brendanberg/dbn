@@ -1,0 +1,7 @@
+Paper 0
+Pen 100
+// two dependant lines
+Set H 50
+Set V 50
+Line 0 V 100 H
+Line H 0 V 100

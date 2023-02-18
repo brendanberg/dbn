@@ -1,0 +1,6 @@
+Paper 0
+Pen 100
+Set H 50
+Set V 20
+Line 0 V 100 V
+Line H 0 H 100

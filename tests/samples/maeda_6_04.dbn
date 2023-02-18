@@ -1,0 +1,16 @@
+Paper 0
+Pen 100
+{
+    // ten lines = 1 square
+    Line 45 45 55 45
+    Line 45 46 55 46
+    Line 45 47 55 47
+    Line 45 48 55 48
+    Line 45 49 55 49
+    Line 45 50 55 50
+    Line 45 51 55 51
+    Line 45 52 55 52
+    Line 45 53 55 53
+    Line 45 54 55 54
+    Line 45 55 55 55
+}

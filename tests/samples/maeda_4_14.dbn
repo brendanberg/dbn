@@ -1,0 +1,17 @@
+// What follows is ten lines ...
+Paper 0
+Pen 100
+Line 10 80 20 80
+Line 10 81 20 81
+Line 10 82 20 82
+Line 10 83 20 83
+Line 10 84 20 84
+Line 10 85 20 85
+Line 10 86 20 86
+Line 10 87 20 87
+Line 10 88 20 88
+Line 10 89 20 89
+Line 10 90 20 90
+// I wish there were an easier way to
+// draw a square, or other filled
+// rectangular areas ...
