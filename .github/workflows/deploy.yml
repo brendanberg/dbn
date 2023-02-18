@@ -1,7 +1,6 @@
 name: Upload Assets to S3
 
-on:
-  workflow_dispatch
+on: workflow_dispatch
 
 jobs:
   upload:
@@ -20,11 +19,18 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_GITHUB_ACTIONS_DEPLOY }}
-          role-session-name: 'GithubActionsDeploy'
+          role-session-name: "GithubActionsDeploy"
           aws-region: us-east-2
+
+      - name: Build Assets
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+        run: npm i
+        run: npm run build
 
       - name: Upload Static Assets
         env:
           AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
         run: |
-          aws s3 sync static/ s3://$AWS_S3_BUCKET_NAME
+          aws s3 sync build/ s3://$AWS_S3_BUCKET_NAME

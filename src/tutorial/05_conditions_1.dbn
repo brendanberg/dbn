@@ -1,0 +1,8 @@
+Repeat X 0 100
+{
+    Pen X
+    Smaller? X 50
+    {
+        Line 0 X 100 X
+    }
+}

@@ -23,35 +23,23 @@ DBN.prototype.init = function(paper) {
 	const self = this;
 	let explainFlag = false;
 
-	const start = e => {
-		if (e.shiftKey) {
-			explainFlag = true;
-			const explain = self.vm.explainPixel(self.canvas.mouseX, self.canvas.mouseY);
-			e.target.dispatchEvent(new CustomEvent('highlight', {detail: explain}));
-		}
-	};
+	const zeroRange = {start: {offset: 0}, end: {offset: 0}};
 
 	const explain = e => {
-		if (!e.shiftKey) {
-			explainFlag = false;
-			return;
-		}
-
-		if (explainFlag) {
+		if (e.shiftKey) {
 			const explain = self.vm.explainPixel(self.canvas.mouseX, self.canvas.mouseY);
 			e.target.dispatchEvent(new CustomEvent('highlight', {detail: explain}));
+		} else {
+			e.target.dispatchEvent(new CustomEvent('highlight', {detail: zeroRange}));
 		}
 	};
 
-	const cancel = e => {
-		explainFlag = false;
-		const none = {start: {offset: 0}, end: {offset: 0}};
-		e.target.dispatchEvent(new CustomEvent('highlight', {detail: none}));
-	}
+	const clear = e => {
+		e.target.dispatchEvent(new CustomEvent('highlight', {detail: zeroRange}));
+	};
 
-	paper.addEventListener('mousedown', start, false);
 	paper.addEventListener('mousemove', explain, false);
-	paper.addEventListener('mouseup', cancel, false);
+	paper.addEventListener('mouseleave', clear, false);
 };
 
 DBN.prototype.beautify = function(source, callback) {
@@ -567,11 +555,18 @@ DBN.prototype.step = function() {
 		});
 
 		this.timer.reset();
-		if (cancelAnimationFrame) { cancelAnimationFrame(this.requestID); }
+
+		if (cancelAnimationFrame) {
+			cancelAnimationFrame(this.requestID);
+		} else if (this.requestID) {
+			clearTimeout(this.requestID);
+		}
+
 		if (this.callback) { this.callback(); }
 	} else {
 		const self = this;
-		this.requestID = (requestAnimationFrame || (cb => setInterval(cb, this.canvas.frameRate)))(
+		const frameRate = this.vm.redrawEnabled ? this.canvas.frameRate : 1;
+		this.requestID = (requestAnimationFrame || (cb => setTimeout(cb, frameRate)))(
 			self.step.bind(self)
 		);
 	}

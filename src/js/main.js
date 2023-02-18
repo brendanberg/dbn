@@ -57,6 +57,7 @@ window.addEventListener('load', function(ee) {
 
 	const banner = document.getElementById('message-banner');
 	let isBannerPinned = false;
+	let sketchModified = false;
 
 	sketch.addEventListener('input', e => {
 		const text = e.target.value;
@@ -64,6 +65,7 @@ window.addEventListener('load', function(ee) {
 		highlights.innerHTML = applyHighlights(text, {start: 0, end: 0});
 		// The error message sticks until the input is edited
 		isBannerPinned = false;
+		sketchModified = true;
 		banner.innerHTML = '';
 	});
 
@@ -97,6 +99,8 @@ window.addEventListener('load', function(ee) {
 	};
 	
 	const highlight = e => {
+		if (sketchModified) { return; }
+
 		const text = sketch.value;
 		const highlighted = applyHighlights(text, {
 			start: e.detail.start.offset,
@@ -134,6 +138,7 @@ window.addEventListener('load', function(ee) {
 		gtag('event', 'Start', {event_category: 'Execute Sketch'});
 
 		try {
+			sketchModified = false;
 			window.interpreter.run(source, function() {
 				e.target.classList.remove('sticky');
 				isBannerPinned = true;

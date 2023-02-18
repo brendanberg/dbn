@@ -21,7 +21,13 @@ Chunk.prototype.disassemble = function() {
 		switch (this.code[i]) {
 			case Op.CONSTANT: {
 				offsets[i] = instrs.length;
-				const idx = this.code[++i];
+				let idx = (this.code[++i] & 0x7F);
+
+				for (; (this.code[i] & 0x80) !== 0; i++) {
+					idx = idx << 7;
+					idx |= (this.code[i + 1] & 0x7F);
+				}
+
 				instrs.push('\tCONSTANT ' + this.data[idx]);
 				break;
 			}

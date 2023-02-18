@@ -1,0 +1,6 @@
+Paper 0
+Repeat X 0 100
+{
+    Pen X
+    Line X 0 X 100
+}

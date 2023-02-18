@@ -1,0 +1,7 @@
+Paper 0
+Pen 100
+Set A 20
+Smaller? A 50
+{
+    Line A A 50 50
+}

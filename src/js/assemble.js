@@ -86,11 +86,17 @@ const assemble = function(label, assembly, exports) {
 				let value = assembly[++i];
 				let idx = data.indexOf(value);
 
-				if (idx !== -1) {
-					code.push(idx);
-				} else {
-					code.push(data.length);
+				if (idx === -1) {
+					idx = data.length;
 					data.push(value);
+				}
+
+				// TODO: Convert this into a proper loop.	
+				if (idx >= 0 && idx <= 0x7F) {
+					code.push(idx);
+				} else if (idx >= 0x80 && idx <= 0x3FFF) {
+					code.push(0x80 | (idx >> 7));
+					code.push(idx & 0x7F);
 				}
 
 				break;
