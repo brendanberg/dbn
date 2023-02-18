@@ -1,0 +1,30 @@
+name: Upload Assets to S3
+
+on:
+  workflow_dispatch
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    environment: "Production"
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Latest Revisions
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_GITHUB_ACTIONS_DEPLOY }}
+          role-session-name: 'GithubActionsDeploy'
+          aws-region: us-east-2
+
+      - name: Upload Static Assets
+        env:
+          AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
+        run: |
+          aws s3 sync static/ s3://$AWS_S3_BUCKET_NAME
