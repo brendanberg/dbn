@@ -1,6 +1,5 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
 	mode: 'development',
@@ -9,21 +8,23 @@ module.exports = {
 	},
 	devtool: 'inline-source-map',
 	devServer: {
-		contentBase: 'build/'
+		static: './build'
 	},
 	output: {
 		path: path.resolve(__dirname, 'build'),
-		filename: 'js/[name].bundle.js'
+		filename: 'js/[name].bundle.js',
+		clean: true,
 	},
 	plugins: [
-		new CleanWebpackPlugin(['build']),
-		new CopyWebpackPlugin([
-			{from: 'src/index.html', to: ''},
-			{from: 'src/css', to: 'css', test: /\.css$/},
-			{from: 'src/assets', to: 'assets', test: /\.(svg|gif|jpg|jpeg|png)$/},
-			{from: 'src/examples', to: 'examples'},
-			{from: 'src/icons', to: 'icons'}
-		])
+		new CopyWebpackPlugin({
+			patterns: [
+				{from: 'index.html', to: './', context: './src/'},
+				{from: '*.css', to: 'css/', context: './src/css/'},
+				{from: '**/*.(svg|gif|jpg|jpeg|png)', to: 'assets/', context: './src/assets/'},
+				{from: 'src/examples', to: 'examples/'},
+				{from: 'src/icons', to: 'icons/'},
+			]
+		})
 	],
 	module: {
 		rules: [
