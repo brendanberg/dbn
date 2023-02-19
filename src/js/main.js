@@ -7,6 +7,9 @@
 import axios from 'axios';
 import DBN from './dbn';
 
+const SHOULD_SHOW_MODAL = 'environment:modal:showAtStartup';
+var filename = 'sketch' + Date.now() + '.dbn';
+
 window.addEventListener('load', function(ee) {
 	const sketch = document.getElementById('sketch');
 	
@@ -16,6 +19,8 @@ window.addEventListener('load', function(ee) {
 	if (sketchPath && sketchPath.match(/\.dbn$/)) {
 		// If there was a sketch path as a query parameter, make an Ajax
 		// request for the file contents and fill the sketch textarea.
+		this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
+
 		axios.get('/' + sketchPath.replace(/^\//, '')).then(response => {
 			if ([200, 304].includes(response.status)) {
 				sketch.value = response.data;
@@ -118,9 +123,30 @@ window.addEventListener('load', function(ee) {
 	const openBtn = document.getElementById('open');
 	const saveBtn = document.getElementById('save');
 	const beautifyBtn = document.getElementById('beautify');
+	const helpBtn = document.getElementById('help');
 	const closeBtn = document.getElementById('close');
 	const modal = document.getElementById('modal');
 	
+	const file = document.getElementById('fileinput');
+
+	file.addEventListener('change', function(e) {
+		const file = e.target.files[0];
+		const reader = new FileReader();
+
+		filename = file.name;
+		
+		reader.readAsText(file,'UTF-8');
+		reader.addEventListener('load', function(readerEvent) {
+			var content = readerEvent.target.result;
+			sketch.value = content;
+		});
+	});
+
+	if (this.localStorage.getItem(SHOULD_SHOW_MODAL) !== 'false') {
+		modal.classList.remove('invisible');
+		modal.classList.remove('hidden');
+	}
+
 	playBtn.addEventListener('mouseover', function(e) {
 		if (isBannerPinned) { return; }
 		banner.innerHTML = 'Play'
@@ -204,8 +230,7 @@ window.addEventListener('load', function(ee) {
 	});
 
 	openBtn.addEventListener('click', e => {
-		modal.classList.remove('hidden');
-		modal.classList.remove('invisible');
+		file.click();
 	});
 	
 	saveBtn.addEventListener('mouseover', function(e) {
@@ -214,6 +239,20 @@ window.addEventListener('load', function(ee) {
 	});
 
 	saveBtn.addEventListener('click', e => {
+		// consider:
+		// uriContent = "data:application/octet-stream," + encodeURIComponent(content);
+		const source = sketch.value;
+		const pom = document.createElement('a');
+		pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(source));
+		pom.setAttribute('download', filename);
+	
+		if (document.createEvent) {
+			var event = document.createEvent('MouseEvents');
+			event.initEvent('click', true, true);
+			pom.dispatchEvent(event);
+		} else {
+			pom.click();
+		}	
 	});
 	
 	saveBtn.addEventListener('mouseout', function(e) {
@@ -286,18 +325,37 @@ window.addEventListener('load', function(ee) {
 		}
 	});
 
+	helpBtn.addEventListener('mouseover', function(e) {
+		if (isBannerPinned) { return; }
+		banner.innerHTML = 'Help';
+	});
+	
+	helpBtn.addEventListener('mouseout', function(e) {
+		if (isBannerPinned) { return; }
+		banner.innerHTML = '';
+	});
+
+	helpBtn.addEventListener('click', function(e) {
+		modal.classList.remove('hidden');
+		modal.classList.remove('invisible');
+	});
+
 	window.addEventListener('error', e => {
-		playBtn.classList.remove('sticky');
-		isBannerPinned = true;
-		banner.innerHTML = e.detail.message;
+		console.error(e);
 
-		if (e.detail.start && e.detail.end) {
-			const highlighted = applyHighlights(sketch.value, {
-				start: e.detail.start.offset,
-				end: e.detail.end.offset
-			});
+		if (e.detail) {
+			playBtn.classList.remove('sticky');
+			isBannerPinned = true;
+			banner.innerHTML = e.detail.message;
 
-			highlights.innerHTML = highlighted;
+			if (e.detail.start && e.detail.end) {
+				const highlighted = applyHighlights(sketch.value, {
+					start: e.detail.start.offset,
+					end: e.detail.end.offset
+				});
+
+				highlights.innerHTML = highlighted;
+			}
 		}
 
 		if (window.interpreter.running) {
@@ -320,6 +378,7 @@ window.addEventListener('load', function(ee) {
 	// ========== MODAL ==========
 
 	closeBtn.addEventListener('click', e => {
+		this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
 		modal.classList.add('invisible');
 		window.setTimeout(() => {
 			modal.classList.add('hidden');

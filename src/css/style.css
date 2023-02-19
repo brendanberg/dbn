@@ -228,6 +228,18 @@ div.control button#beautify:active {
 	background: url('/assets/beautify-active.svg') no-repeat;
 }
 
+div.control button#help {
+	background: url('/assets/help.svg') no-repeat;
+}
+
+div.control button#help:hover {
+	background: url('/assets/help-hover.svg') no-repeat;
+}
+
+div.control button#help:active {
+	background: url('/assets/help-active.svg') no-repeat;
+}
+
 
 .noselect {
 	cursor: default;

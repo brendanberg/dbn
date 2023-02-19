@@ -35,6 +35,8 @@
 		<link rel="preload" href="/assets/save-active.svg" as="image" crossorgin>
 		<link rel="preload" href="/assets/beautify-hover.svg" as="image" crossorgin>
 		<link rel="preload" href="/assets/beautify-active.svg" as="image" crossorgin>
+		<link rel="preload" href="/assets/help-hover.svg" as="image" crossorgin>
+		<link rel="preload" href="/assets/help-active.svg" as="image" crossorgin>
 
 		<!-- Load the Good Stuff -->
 		<script src="/js/main.bundle.js?v=4k9qx" type="application/javascript"></script>
@@ -63,6 +65,7 @@
 					<button id="open"></button>
 					<button id="save"></button>
 					<button id="beautify"></button>
+					<button id="help"></button>
 				</span>
 			</div>
 			<div class="dialog"><p id="message-banner"></p></div>
@@ -70,6 +73,10 @@
 				<div class="paper">
 					<canvas id="paper" width="202" height="202"></canvas>
 				</div>
+
+				<input class="hidden" type="file"
+				id="fileinput" name="fileinput"
+				accept=".dbn">
 			</div>
 			<div class="column right" style="position: relative;">
 				<div class="backdrop noselect" id="bk"><div class="highlights noselect" id="hl"></div></div>
@@ -81,16 +88,22 @@
 			<div class="modal">
 				<div class="banner noselect">
 					<span class="tab selected" id="intro-tab">Introduction</span>
+					<span class="tab" id="environment-tab">Environment</span>
+					<span class="tab" id="language-tab">Language</span>
 					<span class="tab" id="examples-tab">Examples</span>
 					<button class="right" id="close">&#x2717;</button>
 				</div>
 				<div class="frame" id="intro-card">
 					<section>
-					<h2>The DBN Environment</h2>
 
-					<p>Draw By Numeral is a programming environment and language designed
+					<p><strong>Draw By Numeral</strong> is a programming environment and language designed
 					to introduce the basic concepts of computer programming by giving
 					immediate feedback through a simple graphics rendering context.</p>
+					</section>
+				</div>
+				<div class="frame hidden" id="environment-card">
+					<section>
+					<h2>The DBN Environment</h2>
 
 					<p>The DBN environment presents a code editor and graphical output
 					side-by-side in a single window. The features of the environment are
@@ -121,6 +134,8 @@
 					<img src="/assets/window.gif" id="tut-window" class="illustration" data-bg-src="/assets/background.gif">
 					</section>
 
+				</div>
+				<div class="frame hidden" id="language-card">
 					<section>
 					<h2>The DBN Language</h2>
 
