@@ -9,7 +9,7 @@ import DBN from './dbn';
 
 const SHOULD_SHOW_MODAL = 'environment:modal:showAtStartup';
 const SKETCH_VALUE_KEY = 'environment:sketch.value';
-const SKETCH_DEFAULT_PLACEHOLDER = '// Type a DBN program or click the Help icon [?] for an introduction.\n';
+const SKETCH_DEFAULT_PLACEHOLDER = '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon [?] for an introduction and examples.\n';
 
 const uniqueName = () => {
 	let result = '';
@@ -252,6 +252,14 @@ window.addEventListener('load', function(ee) {
 	});
 
 	openBtn.addEventListener('click', e => {
+		playBtn.classList.remove('sticky');
+
+		if (window.interpreter.running) {
+			gtag('event', 'Stop', {event_category: 'Execute Sketch'});
+			window.interpreter.stop();
+			banner.innerHTML = 'Done.';
+		}
+
 		file.click();
 	});
 	
