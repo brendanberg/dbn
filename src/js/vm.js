@@ -285,7 +285,7 @@ VM.prototype.run = function() {
 		switch(instr) {
 			case Op.CONSTANT: {
 				// this.exprPush(this.readConstant(chunk));
-				// The first byte after the opcode will always be a 
+				// The first byte after the opcode will always be a
 				let idx = (chunk.code[this.ip++] & 0x7F);
 
 				for (; (chunk.code[this.ip - 1] & 0x80) !== 0; this.ip++) {
@@ -294,6 +294,7 @@ VM.prototype.run = function() {
 				}
 
 				this.exprStack[this.ep++] = chunk.data[idx];
+				// this.exprStack[this.ep++] = chunk.data[chunk.code[this.ip++]];
 				break;
 			}
 			case Op.GET_ARGUMENT: {

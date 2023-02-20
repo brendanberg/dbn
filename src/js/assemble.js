@@ -91,7 +91,7 @@ const assemble = function(label, assembly, exports) {
 					data.push(value);
 				}
 
-				// TODO: Convert this into a proper loop.	
+				// TODO: Convert this into a proper loop.
 				if (idx >= 0 && idx <= 0x7F) {
 					code.push(idx);
 				} else if (idx >= 0x80 && idx <= 0x3FFF) {

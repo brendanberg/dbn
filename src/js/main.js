@@ -8,7 +8,20 @@ import axios from 'axios';
 import DBN from './dbn';
 
 const SHOULD_SHOW_MODAL = 'environment:modal:showAtStartup';
-var filename = 'sketch' + Date.now() + '.dbn';
+const SKETCH_VALUE_KEY = 'environment:sketch.value';
+const SKETCH_DEFAULT_PLACEHOLDER = '// Type a DBN program or click the Help icon [?] for an introduction.\n';
+
+const uniqueName = () => {
+	let result = '';
+	const alphabet = 'bcdefghjklmnopqrstvwxyz';
+	const alphaLength = alphabet.length;
+	for (let i = 0; i < 4; i++) {
+		result += alphabet.charAt(Math.floor(Math.random() * alphaLength));
+	}
+	return 'sketch_' + (new Date()).toISOString().match(/^[^T]+/) + '_' + result + '.dbn';
+}
+
+let filename = uniqueName();
 
 window.addEventListener('load', function(ee) {
 	const sketch = document.getElementById('sketch');
@@ -39,7 +52,8 @@ window.addEventListener('load', function(ee) {
 	window.interpreter = new DBN();
 	window.interpreter.init(paper);
 
-
+	const source = this.localStorage.getItem(SKETCH_VALUE_KEY);
+	sketch.value = source || SKETCH_DEFAULT_PLACEHOLDER;
 	sketch.focus();
 	sketch.setSelectionRange(sketch.value.length, sketch.value.length);
 
@@ -66,6 +80,14 @@ window.addEventListener('load', function(ee) {
 
 	sketch.addEventListener('input', e => {
 		const text = e.target.value;
+		
+		// TODO: Only autosave after no keyboard input for 300ms
+		if (text.length < 1000000) {
+			this.localStorage.setItem(SKETCH_VALUE_KEY, text);
+		}
+
+		filename = uniqueName();
+
 		// On input events, remove all highlights...
 		highlights.innerHTML = applyHighlights(text, {start: 0, end: 0});
 		// The error message sticks until the input is edited
