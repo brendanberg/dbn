@@ -41,8 +41,8 @@ const Canvas = function(paper) {
 	this.height = paper.height;
 	this.paperCtx = paper.getContext('2d');
 	// Transform, because DBN's origin is bottom left.
-	this.paperCtx.translate(0, paper.height);
-	this.paperCtx.scale(1, -1);
+	this.paperCtx.resetTransform();
+	this.paperCtx.setTransform(1, 0, 0, -1, 0, paper.height);
 
 	// Set nearest-neighbor interpolation for zooming.
 	this.paperCtx.webkitImageSmoothingEnabled = false;
