@@ -161,6 +161,7 @@ window.addEventListener('load', function(ee) {
 		reader.addEventListener('load', function(readerEvent) {
 			var content = readerEvent.target.result;
 			sketch.value = content;
+			window.interpreter.init(paper);
 		});
 	});
 
