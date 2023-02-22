@@ -65,6 +65,43 @@ resource "aws_cloudfront_distribution" "static-hosting" {
 
   aliases = [local.fqdn]
 
+  ordered_cache_behavior {
+    target_origin_id = local.s3_origin_id # aws_lambda_function.network.function_name
+    path_pattern     = "api.v1/*"
+    
+    allowed_methods = [
+      "HEAD",
+      "GET",
+      "PUT",
+      "POST",
+      "PATCH",
+      "OPTIONS",
+      "DELETE",
+    ]
+    cached_methods = ["HEAD", "GET", "OPTIONS"]
+
+    lambda_function_association {
+      event_type   = "viewer-request"
+      lambda_arn   = aws_lambda_function.network.qualified_arn
+      include_body = true
+    }
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    min_ttl                = 0
+    default_ttl            = 0
+    max_ttl                = 0
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = false
+  }
+
+
   default_cache_behavior {
     target_origin_id = local.s3_origin_id
     allowed_methods = [

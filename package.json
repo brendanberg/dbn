@@ -13,7 +13,9 @@
 		"clean": "rm -rf build/*",
 		"watch": "webpack --watch",
 		"start": "webpack serve --open",
-		"build": "webpack"
+		"build": "webpack",
+		"build:client": "webpack",
+		"build:service": "mkdir -p dist/ && cd service && zip -r ../dist/network.zip ."
 	},
 	"keywords": [
 		"design by numbers",
