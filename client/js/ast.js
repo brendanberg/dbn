@@ -13,6 +13,7 @@ const AST = {
 				'paper': 'Paper',
 				'pen': 'Pen',
 				'line': 'Line',
+				'field': 'Field',
 				'set': 'Set',
 				'value': 'Value',
 				'repeat': 'Repeat',
@@ -1150,6 +1151,17 @@ AST.Statement.prototype.emit = function(ctx) {
 					Op.STACK_ALLOC, 4,
 					Op.CALL, 'line',
 					Op.STACK_FREE, 4,
+					Op.POP,
+					Op.LOCATION_POP
+				]);
+		}
+		case 'Field': {
+			return ([Op.LOCATION_PUSH, start, end])
+				.concat(this.args.flatMap(a => a.emit()))
+				.concat([
+					Op.STACK_ALLOC, 5,
+					Op.CALL, 'field',
+					Op.STACK_FREE, 5,
 					Op.POP,
 					Op.LOCATION_POP
 				]);
