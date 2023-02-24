@@ -37,3 +37,9 @@ jobs:
           AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
         run: |
           aws s3 sync build/ s3://$AWS_S3_BUCKET_NAME
+
+      - name: Create CloudFront Invalidation
+        env:
+          AWS_CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id $AWS_CLOUDFRONT_DISTRIBUTION_ID --paths "/*"

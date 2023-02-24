@@ -23,6 +23,7 @@ data "aws_iam_policy_document" "github-deploy-policy" {
     ]
   }
   statement {
+    sid    = "GithubDeployAllowS3Access"
     effect = "Allow"
     actions = [
       "s3:PutObject",
@@ -32,6 +33,17 @@ data "aws_iam_policy_document" "github-deploy-policy" {
     resources = [
       "${aws_s3_bucket.static-hosting.arn}",
       "${aws_s3_bucket.static-hosting.arn}/*",
+    ]
+  }
+
+  statement {
+    sid    = "GithubDeployAllowCloudFrontInvalidation"
+    effect = "Allow"
+    actions = [
+      "cloudfront:CreateInvalidation",
+    ]
+    resources = [
+      "${aws_cloudfront_distribution.static-hosting.arn}",
     ]
   }
 }
