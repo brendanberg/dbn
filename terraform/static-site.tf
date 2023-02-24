@@ -66,9 +66,9 @@ resource "aws_cloudfront_distribution" "static-hosting" {
   aliases = [local.fqdn]
 
   ordered_cache_behavior {
-    target_origin_id = local.s3_origin_id # aws_lambda_function.network.function_name
+    target_origin_id = local.s3_origin_id
     path_pattern     = "api.v1/*"
-    
+
     allowed_methods = [
       "HEAD",
       "GET",

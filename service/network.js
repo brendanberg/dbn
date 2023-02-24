@@ -2,6 +2,33 @@ const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 
 const DDB_TABLE_NAME = "DrawbyNumeralNetworkConnector";
 
+const HttpStatus = {
+  200: 'OK',
+  400: 'Bad Request',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  500: 'Internal Server Error',
+};
+
+const prepareResponse = (status, body) => {
+  return {
+    body: body,
+    bodyEncoding: 'text',
+    headers: {
+      'access-control-allow-origin': [{
+        key: 'Access-Control-Allow-Origin',
+        value: '*'
+      }],
+      'access-control-allow-methods': [{
+        key: 'Access-Control-Allow-Methods',
+        value: 'PUT, GET, OPTIONS'
+      }],
+    },
+    status: status,
+    statusDescription: HttpStatus[status],
+  }
+};
+
 exports.handler = async function (event, context, callback) {
   const request = event.Records[0].cf.request;
   const resource = request.uri.match(/^\/api\.v1\/net\/(\d{1,4})$/);
@@ -11,12 +38,7 @@ exports.handler = async function (event, context, callback) {
 
     // An address of 0 or greater than 1000 is a bad request
     if (addr == 0 || addr > 1000) {
-      callback(null, {
-        body: '',
-        bodyEncoding: 'text',
-        status: 400,
-        statusDescription: 'Bad Request'
-      });
+      callback(null, prepareResponse(400, ''));
       return;
     }
 
@@ -34,12 +56,7 @@ exports.handler = async function (event, context, callback) {
       try {
         const data = await ddb.getItem(params);
 
-        callback(null, {
-          body: data.Item?.Value?.N || '0',
-          bodyEncoding: 'text',
-          status: '200',
-          statusDescription: 'OK'
-        });
+        callback(null, prepareResponse('200', data.Item?.Value?.N || '0'));
 
         console.log({
           method: 'GET',
@@ -48,12 +65,7 @@ exports.handler = async function (event, context, callback) {
           value: data.Item?.Value?.N || '0'
         });
       } catch (err) {
-        callback(null, {
-          body: '',
-          bodyEncoding: 'text',
-          status: '500',
-          statusDescription: 'Internal Server Error'
-        });
+        callback(null, prepareResponse(500, ''));
 
         console.log({
           method: 'GET',
@@ -65,12 +77,7 @@ exports.handler = async function (event, context, callback) {
 
     } else if (request.method === 'PUT') {
       if (request.body.encoding !== 'base64' || request.body.inputTruncated === true) {
-        callback(null, {
-          body: '',
-          bodyEncoding: 'text',
-          status: 400,
-          statusDescription: 'Bad Request'
-        });
+        callback(null, prepareResponse(400, ''));
 
         console.log({
           method: 'PUT',
@@ -85,12 +92,7 @@ exports.handler = async function (event, context, callback) {
 
       // There was no parsable number in the request body
       if (!match) {
-        callback(null, {
-          body: '',
-          bodyEncoding: 'text',
-          status: 400,
-          statusDescription: 'Bad Request'
-        });
+        callback(null, prepareResponse(400, ''));
         return;
       }
 
@@ -109,12 +111,7 @@ exports.handler = async function (event, context, callback) {
       try {
         const data = await ddb.updateItem(params);
 
-        callback(null, {
-          body: match[1],
-          bodyEncoding: 'text',
-          status: '200',
-          statusDescription: 'OK'
-        });
+        callback(null, prepareResponse(200, match[1]));
 
         console.log({
           method: 'PUT',
@@ -123,12 +120,7 @@ exports.handler = async function (event, context, callback) {
           value: match[1]
         });
       } catch (err) {
-        callback(null, {
-          body: '',
-          bodyEncoding: 'text',
-          status: '500',
-          statusDescription: 'Internal Server Error'
-        });
+        callback(null, prepareResponse(500, ''));
 
         console.log({
           method: 'PUT',
@@ -137,26 +129,16 @@ exports.handler = async function (event, context, callback) {
           error: err
         });
       }
+    } else if (request.method === 'OPTIONS') {
+      // Handle preflight requests
+      callback(null, prepareResponse(200, ''));
     } else {
-
-      // Only GET and PUT requests are allowed
-      callback(null, {
-        body: '',
-        bodyEncoding: 'text',
-        status: '405',
-        statusDescription: 'Method Not Allowed'
-      });
+      // Only GET, PUT, and OPTIONS requests are allowed
+      callback(null, prepareResponse(405, ''));
     }
   } else {
 
     // If execution got here, the client had no forking clue what they were doing
-    const response = {
-      body: '',
-      bodyEncoding: 'text',
-      status: '404',
-      statusDescription: 'Not Found'
-    };
-
-    callback(null, response);
+    callback(null, prepareResponse(404, ''));
   }
 }
