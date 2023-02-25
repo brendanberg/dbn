@@ -6,13 +6,18 @@ const INTERPRET_RESULT_OK = 0x00,
 	INTERPRET_RESULT_COMPILE_ERROR = 0x01,
 	INTERPRET_RESULT_RUNTIME_ERROR = 0x02;
 
+export const VM_STATE_WAITING = 0x00,
+	VM_STATE_RUNNING = 0x01,
+	VM_STATE_PAUSED = 0x02,
+	VM_STATE_DONE = 0x03,
+	VM_STATE_ERROR = 0xFF;
 
 const VM = function(canvas, w, h) {
 	const width = w || 101, height = h || 101;
 
+	this.state = VM_STATE_WAITING;
 	this.canvas = canvas;
 	this.chunk = null;
-	this.completed = false;
 
 	this.ip = 0; // Instruction pointer; index into the code array of a chunk
 	this.ep = 0; // Expression pointer; index of the top of the expression stack
@@ -50,7 +55,7 @@ const VM = function(canvas, w, h) {
 
 VM.prototype.init = function(chunk) {
 	this.chunk = chunk;
-	this.completed = false;
+	this.state = VM_STATE_WAITING;
 	this.ip = 0;
 	this.ep = 0;
 	this.sp = 1;
@@ -257,12 +262,19 @@ VM.prototype.fillCanvas = function() { //r, g, b) {
 };
 
 
-VM.prototype.run = function() {
+VM.prototype.run = async function() {
 	// Continually fetch the next instruction in the chunk's code array and
 	// execute the loop body if the instruction is not Op.HALT
+	if (this.state === VM_STATE_DONE || this.state === VM_STATE_ERROR) {
+		console.error('tried to run the vm from an unrunnable state');
+		return;
+	}
+
+	this.state = VM_STATE_RUNNING;
 
 	// TODO: replace this with an isRunning state flag
 	if (this.pauseTimer.startTime) {
+	//if (this.state === VM_STATE_PAUSED) {
 		if (this.pauseTimer.elapsed() >= this.pauseInterval) {
 			this.pauseTimer.stop();
 			this.pauseTimer.reset();
@@ -305,6 +317,7 @@ VM.prototype.run = function() {
 
 				if (index < 0 || index >= this.sp) {
 					const lastLocation = this.locationStack.pop();
+					this.state = VM_STATE_ERROR;
 					throw {
 						message: 'runtime error',
 						start: lastLocation[0],
@@ -321,6 +334,7 @@ VM.prototype.run = function() {
 
 				if (index < 0 || index >= this.sp) {
 					const lastLocation = this.locationStack.pop();
+					this.state = VM_STATE_ERROR;
 					throw {
 						message: 'runtime error',
 						start: lastLocation[0],
@@ -337,6 +351,7 @@ VM.prototype.run = function() {
 
 				if (index < 0 || index >= this.sp) {
 					const lastLocation = this.locationStack.pop();
+					this.state = VM_STATE_ERROR;
 					throw {
 						message: 'runtime error',
 						start: lastLocation[0],
@@ -354,6 +369,7 @@ VM.prototype.run = function() {
 
 				if (index < 0 || index >= this.sp) {
 					const lastLocation = this.locationStack.pop();
+					this.state = VM_STATE_ERROR;
 					throw {
 						message: 'runtime error',
 						start: lastLocation[0],
@@ -631,6 +647,7 @@ VM.prototype.run = function() {
 
 				if (index < 0 || index >= chunk.exports.length) {
 					const lastLocation = this.locationStack.pop();
+					this.state = VM_STATE_ERROR;
 					throw {
 						message: 'host function index out of bounds',
 						start: lastLocation[0],
@@ -645,7 +662,7 @@ VM.prototype.run = function() {
 					args.push(this.callStack[this.fp - i - 2]);
 				}
 
-				this.exprStack[this.ep++] = chunk.exports[index].apply(null, args);
+				this.exprStack[this.ep++] = await chunk.exports[index].apply(null, args);
 				break;
 			}
 			case Op.RETURN: {
@@ -691,6 +708,7 @@ VM.prototype.run = function() {
 			}
 			default: {
 				const lastLocation = this.locationStack.pop();
+				this.state = VM_STATE_ERROR;
 				throw {
 					message: 'unrecognized opcode ' + instr,
 					start: lastLocation[0],
@@ -709,6 +727,7 @@ VM.prototype.run = function() {
 		if (cycles > 1000) {
 			if (timer.elapsed() > 50) {
 				this.executionTimer.stop();
+				this.state = VM_STATE_PAUSED;
 				return;
 			}
 			cycles = 0;
@@ -716,7 +735,7 @@ VM.prototype.run = function() {
 	}
 
 	this.executionTimer.stop();
-	this.completed = true;
+	this.state = VM_STATE_DONE;
 	this.redraw();
 
 	if (this.ep !== 0) {

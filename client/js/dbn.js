@@ -4,7 +4,13 @@ import Timer from './timer';
 import Canvas from './canvas';
 import assemble from './assemble';
 import parser from '../grammar/dbn.pegjs';
-
+import axios from 'axios';
+import {
+	VM_STATE_WAITING,
+	VM_STATE_RUNNING,
+	VM_STATE_PAUSED,
+	VM_STATE_DONE,
+	VM_STATE_ERROR } from './vm';
 
 const DBN = function() {
 	this.canvas = null;
@@ -26,6 +32,8 @@ DBN.prototype.init = function(paper) {
 	const zeroRange = {start: {offset: 0}, end: {offset: 0}};
 
 	const explain = e => {
+		if (self.vm.state === VM_STATE_ERROR || self.vm.state === VM_STATE_WAITING) { return; }
+
 		if (e.shiftKey) {
 			const explain = self.vm.explainPixel(self.canvas.mouseX, self.canvas.mouseY);
 			e.target.dispatchEvent(new CustomEvent('highlight', {detail: explain}));
@@ -35,6 +43,8 @@ DBN.prototype.init = function(paper) {
 	};
 
 	const clear = e => {
+		if (self.vm.state === VM_STATE_ERROR || self.vm.state === VM_STATE_WAITING) { return; }
+
 		e.target.dispatchEvent(new CustomEvent('highlight', {detail: zeroRange}));
 	};
 
@@ -149,12 +159,15 @@ DBN.prototype.beautify = function(source, callback) {
 	return ast.indent(0);
 };
 
-DBN.prototype.run = function(source, callback) {
+DBN.prototype.run = async function(source) {
 	if (this.running) {
 		this.stop();
 	}
 
 	this.canvas.init();
+
+	const evt = new CustomEvent('vmstart', {});
+	window.dispatchEvent(evt);
 
 	const timer = new Timer();
 	timer.start();
@@ -463,7 +476,7 @@ DBN.prototype.run = function(source, callback) {
 
 	const self = this;
 
-	ast.exports.push(function Mouse(a) { 
+	ast.exports.push(async function Mouse(a) { 
 		switch (a) {
 			case 1:
 				return self.canvas.mouseX;
@@ -476,17 +489,43 @@ DBN.prototype.run = function(source, callback) {
 		}
 	});
 
+	ast.exports.push(async function Key(a) {
+		return 0;
+	});
+
+	ast.exports.push(async function Net(idx) {
+		const response = await axios.get('https://dbn.berg.industries/api.v1/net/' + idx);
+
+		if ([200, 304].includes(response.status)) {
+			console.log(response.data);
+			return parseInt(response.data, 10);
+		} else {
+			return 0;
+		}
+		// TODO: Catch error
+	});
+
+	ast.exports.push(async function Net_set(idx, val) {
+		const response = await axios.put('https://dbn.berg.industries/api.v1/net/' + idx, val.toString());
+
+		if ([200, 304].includes(response.status)) {
+			return parseInt(response.data, 10);
+		} else {
+			return 0;
+		}
+	});
+
 	const _array = new Int32Array(1000);
 
-	ast.exports.push(function Array(idx) {
-		return _array[idx + 1];
+	ast.exports.push(async function Array(idx) {
+		return _array[idx - 1];
 	});
 
-	ast.exports.push(function Array_set(idx, val) {
-		_array[idx + 1] = val;
+	ast.exports.push(async function Array_set(idx, val) {
+		_array[idx - 1] = val;
 	});
 
-	ast.exports.push(function Time(which) {
+	ast.exports.push(async function Time(which) {
 		const now = new Date();
 
 		switch (which) {
@@ -519,16 +558,13 @@ DBN.prototype.run = function(source, callback) {
 	this.timer.start();
 	this.vm.init(chunk);
 	this.running = true;
-	this.step();
 	
-	if (callback && typeof(callback) === 'function') {
-		this.callback = callback;
-	}
+	await this.step();
 };
 
-DBN.prototype.step = function() {
+DBN.prototype.step = async function() {
 	try {
-		this.vm.run();
+		await this.vm.run();
 	} catch(err) {
 		gtag('event', 'Runtime Error', {event_category: 'Execute Sketch'});
 		console.log(err);
@@ -541,28 +577,10 @@ DBN.prototype.step = function() {
 			}
 		});
 		window.dispatchEvent(evt);
-		throw err;
 	}
 
-	if (this.vm.completed) {
-		this.timer.stop();
-
-		gtag('event', 'timing_complete', {
-			event_category: 'Execute Sketch',
-			event_label: 'Execution Time',
-			non_interaction: true,
-			value: this.elapsed() / 1000
-		});
-
-		this.timer.reset();
-
-		if (cancelAnimationFrame) {
-			cancelAnimationFrame(this.requestID);
-		} else if (this.requestID) {
-			clearTimeout(this.requestID);
-		}
-
-		if (this.callback) { this.callback(); }
+	if (this.vm.state === VM_STATE_DONE) {
+		this.stop(true);
 	} else {
 		const self = this;
 		const frameRate = this.vm.redrawEnabled ? this.canvas.frameRate : 1;
@@ -572,18 +590,26 @@ DBN.prototype.step = function() {
 	}
 };
 
-DBN.prototype.stop = function() {
+DBN.prototype.stop = function(ran_to_completion) {
 	this.running = false;
 	this.timer.stop();
 
 	gtag('event', 'timing_complete', {
 		event_category: 'Execute Sketch',
 		event_label: 'Execution Time',
+		... (ran_to_completion ? {non_interaction: true} : {}),
 		value: this.elapsed() / 1000
 	});
 
 	this.timer.reset();
-	if (cancelAnimationFrame) { cancelAnimationFrame(this.requestID); }
+	if (cancelAnimationFrame) {
+		cancelAnimationFrame(this.requestID);
+	} else if (this.requestID) {
+		clearTimeout(this.requestID);
+	}
+
+	const evt = new CustomEvent('vmstop', {});
+	window.dispatchEvent(evt);
 };
 
 DBN.prototype.elapsed = function() {
@@ -591,4 +617,3 @@ DBN.prototype.elapsed = function() {
 };
 
 export default DBN;
-

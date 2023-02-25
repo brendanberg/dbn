@@ -29,6 +29,7 @@ const prepareResponse = (status, body) => {
   }
 };
 
+
 exports.handler = async function (event, context, callback) {
   const request = event.Records[0].cf.request;
   const resource = request.uri.match(/^\/api\.v1\/net\/(\d{1,4})$/);

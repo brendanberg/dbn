@@ -51,4 +51,3 @@ export const HALT = 0x00,
 	LOCATION_POP = 0xFC,
 	ARGUMENT = 0xFE,
 	LABEL = 0xFF;
-

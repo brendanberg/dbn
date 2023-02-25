@@ -180,23 +180,13 @@ window.addEventListener('load', function(ee) {
 		banner.innerHTML = '';
 	});
 	
-	playBtn.addEventListener('click', function(e) {
+	playBtn.addEventListener('click', async function(e) {
 		const source = sketch.value;
-
-		e.target.classList.add('sticky');
 		gtag('event', 'Start', {event_category: 'Execute Sketch'});
 
 		try {
 			sketchModified = false;
-			window.interpreter.run(source, function() {
-				e.target.classList.remove('sticky');
-				isBannerPinned = true;
-				banner.innerHTML = 'Done.';
-				window.setTimeout(() => {
-					isBannerPinned = false;
-					banner.innerHTML = '';
-				}, 3000);
-			});
+			await window.interpreter.run(source);
 		} catch (err) {
 			//ga('send', 'event', 'sketch', 'error', err.message);
 			e.target.classList.remove('sticky');
@@ -391,6 +381,20 @@ window.addEventListener('load', function(ee) {
 			window.interpreter.stop();
 		}
 	});
+
+	this.window.addEventListener('vmstart', e => {
+		playBtn.classList.add('sticky');
+	});
+
+	this.window.addEventListener('vmstop', e => {
+		playBtn.classList.remove('sticky');
+		isBannerPinned = true;
+		banner.innerHTML = 'Done.';
+		window.setTimeout(() => {
+			isBannerPinned = false;
+			banner.innerHTML = '';
+		}, 3000);
+	})
 
 	window.addEventListener('keydown', e => {
 		
