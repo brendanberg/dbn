@@ -16,7 +16,6 @@ resource "aws_iam_role" "github-deploy" {
 
 data "aws_iam_policy_document" "github-deploy-policy" {
   statement {
-    sid     = "GithubDeployAllowS3Listing"
     effect  = "Allow"
     actions = ["s3:ListBucket"]
     resources = [
@@ -24,7 +23,6 @@ data "aws_iam_policy_document" "github-deploy-policy" {
     ]
   }
   statement {
-    sid    = "GithubDeployAllowS3Access"
     effect = "Allow"
     actions = [
       "s3:PutObject",
@@ -38,7 +36,6 @@ data "aws_iam_policy_document" "github-deploy-policy" {
   }
 
   statement {
-    sid    = "GithubDeployAllowCloudFrontInvalidation"
     effect = "Allow"
     actions = [
       "cloudfront:CreateInvalidation",

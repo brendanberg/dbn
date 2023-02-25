@@ -8,10 +8,11 @@ resource "aws_lambda_function" "network" {
   role          = aws_iam_role.network_lambda_role.arn
   architectures = ["x86_64"]
 
-  filename = "../dist/network.zip"
-  handler  = "network.handler"
-  runtime  = "nodejs18.x"
-  publish  = true
+  filename         = "../dist/network.zip"
+  source_code_hash = data.archive_file.network_zip.output_base64sha256
+  handler          = "network.handler"
+  runtime          = "nodejs18.x"
+  publish          = true
 
   # environment {
   #   variables = {
@@ -20,15 +21,21 @@ resource "aws_lambda_function" "network" {
   # }
 }
 
+data "archive_file" "network_zip" {
+  type        = "zip"
+  source_file = "../service/network.js"
+  output_path = "../dist/network.zip"
+}
+
 resource "aws_iam_role" "network_lambda_role" {
   provider = aws.acm_provider
 
   name                = "${replace(var.name, " ", "")}ExecutionRole"
   assume_role_policy  = data.aws_iam_policy_document.network_role_policy.json
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
-  
+
   inline_policy {
-    name = "${replace(var.name, " ", "")}LambdaDdbPolicy"
+    name   = "${replace(var.name, " ", "")}LambdaDdbPolicy"
     policy = data.aws_iam_policy_document.lambda_ddb_access.json
   }
 }
