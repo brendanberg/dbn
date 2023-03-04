@@ -1061,7 +1061,7 @@ AST.Statement.prototype.emit = function(ctx) {
 			} else {
 				return ([
 					Op.LOCATION_PUSH, start, end
-				]).concat(this.args.map(x => {
+				]).concat(this.args.flatMap(x => {
 					return x.emit().concat([
 						Op.CONSTANT, 0,
 						Op.CONSTANT, 100,
