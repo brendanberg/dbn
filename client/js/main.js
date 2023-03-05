@@ -1,6 +1,6 @@
 /* Draw By Numeral
  * by Brendan Berg
- * 
+ *
  * main.js initializes the PixelPusher VM and connects window UI elements to
  * their desired actions. That's it :)
  */
@@ -9,305 +9,330 @@ import DBN from './dbn';
 
 const SHOULD_SHOW_MODAL = 'environment:modal:showAtStartup';
 const SKETCH_VALUE_KEY = 'environment:sketch.value';
-const SKETCH_DEFAULT_PLACEHOLDER = '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon [?] for an introduction and examples.\n';
+const SKETCH_DEFAULT_PLACEHOLDER =
+    '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon [?] for an introduction and examples.\n';
 
 const uniqueName = () => {
-	let result = '';
-	const alphabet = 'bcdefghjklmnopqrstvwxyz';
-	const alphaLength = alphabet.length;
-	for (let i = 0; i < 4; i++) {
-		result += alphabet.charAt(Math.floor(Math.random() * alphaLength));
-	}
-	return 'sketch_' + (new Date()).toISOString().match(/^[^T]+/) + '_' + result + '.dbn';
-}
+    let result = '';
+    const alphabet = 'bcdefghjklmnopqrstvwxyz';
+    const alphaLength = alphabet.length;
+    for (let i = 0; i < 4; i++) {
+        result += alphabet.charAt(Math.floor(Math.random() * alphaLength));
+    }
+    return 'sketch_' + new Date().toISOString().match(/^[^T]+/) + '_' + result + '.dbn';
+};
 
 let filename = uniqueName();
 
-window.addEventListener('load', function(ee) {
-	const sketch = document.getElementById('sketch');
-	
-	const queryParams = new URLSearchParams(window.location.search);
-	const sketchPath = queryParams.get('');
+window.addEventListener('load', function (ee) {
+    const sketch = document.getElementById('sketch');
 
-	if (sketchPath && sketchPath.match(/\.dbn$/)) {
-		// If there was a sketch path as a query parameter, make an Ajax
-		// request for the file contents and fill the sketch textarea.
-		this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
+    const queryParams = new URLSearchParams(window.location.search);
+    const sketchPath = queryParams.get('');
 
-		axios.get('/' + sketchPath.replace(/^\//, '')).then(response => {
-			if ([200, 304].includes(response.status)) {
-				sketch.value = response.data;
-			}
-		}).catch(error => {
-			window.location = '/';
-		});
-	}
+    if (sketchPath && sketchPath.match(/\.dbn$/)) {
+        // If there was a sketch path as a query parameter, make an Ajax
+        // request for the file contents and fill the sketch textarea.
+        this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
 
-	const paper = document.getElementById('paper');
-	// The following line mitigates a rendering bug in Safari where a sliver
-	// of transparency is visible at the bottom of the image region on the
-	// canvas. By setting the element background color to black, it blends in
-	// with the surrounding border.
-	paper.style.backgroundColor = '#000';
-	window.interpreter = new DBN();
-	window.interpreter.init(paper);
+        axios
+            .get('/' + sketchPath.replace(/^\//, ''))
+            .then((response) => {
+                if ([200, 304].includes(response.status)) {
+                    sketch.value = response.data;
+                }
+            })
+            .catch((error) => {
+                window.location = '/';
+            });
+    }
 
-	const source = this.localStorage.getItem(SKETCH_VALUE_KEY);
-	sketch.value = source || SKETCH_DEFAULT_PLACEHOLDER;
-	sketch.focus();
-	sketch.setSelectionRange(sketch.value.length, sketch.value.length);
+    const paper = document.getElementById('paper');
+    // The following line mitigates a rendering bug in Safari where a sliver
+    // of transparency is visible at the bottom of the image region on the
+    // canvas. By setting the element background color to black, it blends in
+    // with the surrounding border.
+    paper.style.backgroundColor = '#000';
+    window.interpreter = new DBN();
+    window.interpreter.init(paper);
 
-	sketch.addEventListener('keydown', function(e) {
-		// Override the default tab key behavior to insert four spaces
-		// instead of changing focus away from the textarea.
-		const TAB_KEY_CODE = 9;
-		const TAB_SIZE = 4;
-	
-		let keyCode = e.keyCode || e.which;
-	
-		if (keyCode === TAB_KEY_CODE) {
-			e.preventDefault();
-			document.execCommand('insertText', false, ' '.repeat(TAB_SIZE));
-		}
-	});
+    const source = this.localStorage.getItem(SKETCH_VALUE_KEY);
+    sketch.value = source || SKETCH_DEFAULT_PLACEHOLDER;
+    sketch.focus();
+    sketch.setSelectionRange(sketch.value.length, sketch.value.length);
 
-	const highlights = document.getElementById('hl');
-	const backdrop = document.getElementById('bk');
+    sketch.addEventListener('keydown', function (e) {
+        // Override the default tab key behavior to insert four spaces
+        // instead of changing focus away from the textarea.
+        const TAB_KEY_CODE = 9;
+        const TAB_SIZE = 4;
 
-	const banner = document.getElementById('message-banner');
-	let isBannerPinned = false;
-	let sketchModified = false;
+        let keyCode = e.keyCode || e.which;
 
-	sketch.addEventListener('input', e => {
-		const text = e.target.value;
-		
-		// TODO: Only autosave after no keyboard input for 300ms
-		if (text.length < 1000000) {
-			this.localStorage.setItem(SKETCH_VALUE_KEY, text);
-		}
+        if (keyCode === TAB_KEY_CODE) {
+            e.preventDefault();
+            document.execCommand('insertText', false, ' '.repeat(TAB_SIZE));
+        }
+    });
 
-		filename = uniqueName();
+    const highlights = document.getElementById('hl');
+    const backdrop = document.getElementById('bk');
 
-		// On input events, remove all highlights...
-		highlights.innerHTML = applyHighlights(text, {start: 0, end: 0});
-		// The error message sticks until the input is edited
-		isBannerPinned = false;
-		sketchModified = true;
-		banner.innerHTML = '';
-	});
+    const banner = document.getElementById('message-banner');
+    let isBannerPinned = false;
+    let sketchModified = false;
 
-	sketch.addEventListener('scroll', e => {
-		backdrop.scrollTop = sketch.scrollTop;
-	});
+    sketch.addEventListener('input', (e) => {
+        const text = e.target.value;
 
-	const escapeArea = document.createElement('textarea');
+        // TODO: Only autosave after no keyboard input for 300ms
+        if (text.length < 1000000) {
+            this.localStorage.setItem(SKETCH_VALUE_KEY, text);
+        }
 
-	const escapeEntities = text => {
-		escapeArea.textContent = text;
-		return escapeArea.innerHTML;
-	};
+        filename = uniqueName();
 
-	const applyHighlights = (text, range, color) => {
-		// Insert <mark> tags to span start and end indexes
-		let output = '';
+        // On input events, remove all highlights...
+        highlights.innerHTML = applyHighlights(text, { start: 0, end: 0 });
+        // The error message sticks until the input is edited
+        isBannerPinned = false;
+        sketchModified = true;
+        banner.innerHTML = '';
+    });
 
-		if ((range.start || range.end) && range.start < range.end) {
-			output = escapeEntities(text.slice(0, range.start));
-			output += '<mark>';
-			output += escapeEntities(text.slice(range.start, range.end));
-			output += '</mark>';
-			output += escapeEntities(text.slice(range.end));
-		} else {
-			output = escapeEntities(text);
-		}
+    sketch.addEventListener('scroll', (e) => {
+        backdrop.scrollTop = sketch.scrollTop;
+    });
 
-		return output.replace(/\n$/g, '\n\n');
-		//texts.join('').replace(/\n$/g, '\n\n');
-	};
-	
-	const highlight = e => {
-		if (sketchModified) { return; }
+    const escapeArea = document.createElement('textarea');
 
-		const text = sketch.value;
-		const highlighted = applyHighlights(text, {
-			start: e.detail.start.offset,
-			end: e.detail.end.offset
-		});
-		
-		highlights.innerHTML = highlighted;
-	};
+    const escapeEntities = (text) => {
+        escapeArea.textContent = text;
+        return escapeArea.innerHTML;
+    };
 
-	paper.addEventListener('highlight', highlight, false);
+    const applyHighlights = (text, range, color) => {
+        // Insert <mark> tags to span start and end indexes
+        let output = '';
 
+        if ((range.start || range.end) && range.start < range.end) {
+            output = escapeEntities(text.slice(0, range.start));
+            output += '<mark>';
+            output += escapeEntities(text.slice(range.start, range.end));
+            output += '</mark>';
+            output += escapeEntities(text.slice(range.end));
+        } else {
+            output = escapeEntities(text);
+        }
 
-	const playBtn = document.getElementById('play');
-	const stopBtn = document.getElementById('stop');
-	const openBtn = document.getElementById('open');
-	const saveBtn = document.getElementById('save');
-	const beautifyBtn = document.getElementById('beautify');
-	const helpBtn = document.getElementById('help');
-	const closeBtn = document.getElementById('close');
-	const modal = document.getElementById('modal');
-	
-	const file = document.getElementById('fileinput');
+        return output.replace(/\n$/g, '\n\n');
+        //texts.join('').replace(/\n$/g, '\n\n');
+    };
 
-	file.addEventListener('change', function(e) {
-		const file = e.target.files[0];
-		const reader = new FileReader();
+    const highlight = (e) => {
+        if (sketchModified) {
+            return;
+        }
 
-		filename = file.name;
-		
-		reader.readAsText(file,'UTF-8');
-		reader.addEventListener('load', function(readerEvent) {
-			var content = readerEvent.target.result;
-			sketch.value = content;
-			window.interpreter.init(paper);
-		});
-	});
+        const text = sketch.value;
+        const highlighted = applyHighlights(text, {
+            start: e.detail.start.offset,
+            end: e.detail.end.offset,
+        });
 
-	if (this.localStorage.getItem(SHOULD_SHOW_MODAL) !== 'false') {
-		modal.classList.remove('invisible');
-		modal.classList.remove('hidden');
-	}
+        highlights.innerHTML = highlighted;
+    };
 
-	playBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Play'
-	});
-	
-	playBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
-	
-	playBtn.addEventListener('click', async function(e) {
-		const source = sketch.value;
-		gtag('event', 'Start', {event_category: 'Execute Sketch'});
+    paper.addEventListener('highlight', highlight, false);
 
-		try {
-			sketchModified = false;
-			await window.interpreter.run(source);
-		} catch (err) {
-			//ga('send', 'event', 'sketch', 'error', err.message);
-			e.target.classList.remove('sticky');
-			isBannerPinned = true;
+    const playBtn = document.getElementById('play');
+    const stopBtn = document.getElementById('stop');
+    const openBtn = document.getElementById('open');
+    const saveBtn = document.getElementById('save');
+    const beautifyBtn = document.getElementById('beautify');
+    const helpBtn = document.getElementById('help');
+    const closeBtn = document.getElementById('close');
+    const modal = document.getElementById('modal');
 
-			if (typeof err === 'object') {
-				let evt = new CustomEvent('error', {
-					detail: {
-						message: err.message,
-						start: err.start,
-						end: err.end
-					}
-				});
-				window.dispatchEvent(evt);
-			} else {
-				let evt = new Event('error', {
-					message: err
-				});
-				window.dispatchEvent(evt);
-				console.error(err.stack);
-				throw err;
-			}
-		}
-	});
-	
-	stopBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Stop';
-	});
-	
-	stopBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
+    const file = document.getElementById('fileinput');
 
-	stopBtn.addEventListener('click', function(e) {
-		playBtn.classList.remove('sticky');
+    file.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
 
-		if (window.interpreter.running) {
-			gtag('event', 'Stop', {event_category: 'Execute Sketch'});
-			window.interpreter.stop();
-			banner.innerHTML = 'Done.';
-		}
-	});
-	
-	openBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Open';
-	});
-	
-	openBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
+        filename = file.name;
 
-	openBtn.addEventListener('click', e => {
-		playBtn.classList.remove('sticky');
+        reader.readAsText(file, 'UTF-8');
+        reader.addEventListener('load', function (readerEvent) {
+            var content = readerEvent.target.result;
+            sketch.value = content;
+            window.interpreter.init(paper);
+        });
+    });
 
-		if (window.interpreter.running) {
-			gtag('event', 'Stop', {event_category: 'Execute Sketch'});
-			window.interpreter.stop();
-			banner.innerHTML = 'Done.';
-		}
+    if (this.localStorage.getItem(SHOULD_SHOW_MODAL) !== 'false') {
+        modal.classList.remove('invisible');
+        modal.classList.remove('hidden');
+    }
 
-		file.click();
-	});
-	
-	saveBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Save';
-	});
+    playBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Play';
+    });
 
-	saveBtn.addEventListener('click', e => {
-		const source = document.createElement('a');
-		source.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(sketch.value));
-		source.setAttribute('download', filename);
-	
-		if (document.createEvent) {
-			var event = document.createEvent('MouseEvents');
-			event.initEvent('click', true, true);
-			source.dispatchEvent(event);
-		} else {
-			source.click();
-		}	
-	});
-	
-	saveBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
-	
-	beautifyBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Beautify';
-	});
-	
-	beautifyBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
+    playBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
 
-	beautifyBtn.addEventListener('click', e => {
-		const source = sketch.value;
+    playBtn.addEventListener('click', async function (e) {
+        const source = sketch.value;
+        gtag('event', 'Start', { event_category: 'Execute Sketch' });
 
-		try {
-			sketch.value = window.interpreter.beautify(source);
-		} catch (err) {
-			//ga('send', 'event', 'sketch', 'error', err.message);
+        try {
+            sketchModified = false;
+            await window.interpreter.run(source);
+        } catch (err) {
+            //ga('send', 'event', 'sketch', 'error', err.message);
+            e.target.classList.remove('sticky');
+            isBannerPinned = true;
 
-			if (typeof err === 'object') {
-				let evt = new Event('error', {
-					detail: {
-						message: err.message,
-						start: err.start,
-						end: err.end
-					}
-				});
-				window.dispatchEvent(evt);
-				//banner.innerHTML = err.message;
+            if (typeof err === 'object') {
+                let evt = new CustomEvent('error', {
+                    detail: {
+                        message: err.message,
+                        start: err.start,
+                        end: err.end,
+                    },
+                });
+                window.dispatchEvent(evt);
+            } else {
+                let evt = new Event('error', {
+                    message: err,
+                });
+                window.dispatchEvent(evt);
+                console.error(err.stack);
+                throw err;
+            }
+        }
+    });
 
-				/*if (err.start && err.end) {
+    stopBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Stop';
+    });
+
+    stopBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
+
+    stopBtn.addEventListener('click', function (e) {
+        playBtn.classList.remove('sticky');
+
+        if (window.interpreter.running) {
+            gtag('event', 'Stop', { event_category: 'Execute Sketch' });
+            window.interpreter.stop();
+            banner.innerHTML = 'Done.';
+        }
+    });
+
+    openBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Open';
+    });
+
+    openBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
+
+    openBtn.addEventListener('click', (e) => {
+        playBtn.classList.remove('sticky');
+
+        if (window.interpreter.running) {
+            gtag('event', 'Stop', { event_category: 'Execute Sketch' });
+            window.interpreter.stop();
+            banner.innerHTML = 'Done.';
+        }
+
+        file.click();
+    });
+
+    saveBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Save';
+    });
+
+    saveBtn.addEventListener('click', (e) => {
+        const source = document.createElement('a');
+        source.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(sketch.value));
+        source.setAttribute('download', filename);
+
+        if (document.createEvent) {
+            var event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+            source.dispatchEvent(event);
+        } else {
+            source.click();
+        }
+    });
+
+    saveBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
+
+    beautifyBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Beautify';
+    });
+
+    beautifyBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
+
+    beautifyBtn.addEventListener('click', (e) => {
+        const source = sketch.value;
+
+        try {
+            sketch.value = window.interpreter.beautify(source);
+        } catch (err) {
+            //ga('send', 'event', 'sketch', 'error', err.message);
+
+            if (typeof err === 'object') {
+                let evt = new Event('error', {
+                    detail: {
+                        message: err.message,
+                        start: err.start,
+                        end: err.end,
+                    },
+                });
+                window.dispatchEvent(evt);
+                //banner.innerHTML = err.message;
+
+                /*if (err.start && err.end) {
 					// Highlight selection
 					const highlighted = applyHighlights(sketch.value, {
 						start: err.start.offset,
@@ -319,142 +344,144 @@ window.addEventListener('load', function(ee) {
 					console.error(err.stack);
 					throw err;
 				}*/
-			} else {
-				let evt = new Event('error', {
-					message: err
-				});
-				window.dispatchEvent(evt);
-				//banner.innerHTML = err;
-				console.error(err.stack);
-				throw err;
-			}
-		}
+            } else {
+                let evt = new Event('error', {
+                    message: err,
+                });
+                window.dispatchEvent(evt);
+                //banner.innerHTML = err;
+                console.error(err.stack);
+                throw err;
+            }
+        }
 
-		if (Event) {
-			let evt = new Event('input', {target: sketch});
-			sketch.dispatchEvent(evt);
-		} else if ('createEvent' in document) {
-			let evt = document.createEvent('TextEvent');
-			evt.initEvent('input', false, true);
-			evt.target = sketch;
-			sketch.dispatchEvent(evt);
-		} else {
-			sketch.fireEvent('input');
-		}
-	});
+        if (Event) {
+            let evt = new Event('input', { target: sketch });
+            sketch.dispatchEvent(evt);
+        } else if ('createEvent' in document) {
+            let evt = document.createEvent('TextEvent');
+            evt.initEvent('input', false, true);
+            evt.target = sketch;
+            sketch.dispatchEvent(evt);
+        } else {
+            sketch.fireEvent('input');
+        }
+    });
 
-	helpBtn.addEventListener('mouseover', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = 'Help';
-	});
-	
-	helpBtn.addEventListener('mouseout', function(e) {
-		if (isBannerPinned) { return; }
-		banner.innerHTML = '';
-	});
+    helpBtn.addEventListener('mouseover', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = 'Help';
+    });
 
-	helpBtn.addEventListener('click', function(e) {
-		modal.classList.remove('hidden');
-		modal.classList.remove('invisible');
-	});
+    helpBtn.addEventListener('mouseout', function (e) {
+        if (isBannerPinned) {
+            return;
+        }
+        banner.innerHTML = '';
+    });
 
-	window.addEventListener('error', e => {
-		console.error(e);
+    helpBtn.addEventListener('click', function (e) {
+        modal.classList.remove('hidden');
+        modal.classList.remove('invisible');
+    });
 
-		if (e.detail) {
-			playBtn.classList.remove('sticky');
-			isBannerPinned = true;
-			banner.innerHTML = e.detail.message;
+    window.addEventListener('error', (e) => {
+        console.error(e);
 
-			if (e.detail.start && e.detail.end) {
-				const highlighted = applyHighlights(sketch.value, {
-					start: e.detail.start.offset,
-					end: e.detail.end.offset
-				});
+        if (e.detail) {
+            playBtn.classList.remove('sticky');
+            isBannerPinned = true;
+            banner.innerHTML = e.detail.message;
 
-				highlights.innerHTML = highlighted;
-			}
-		}
+            if (e.detail.start && e.detail.end) {
+                const highlighted = applyHighlights(sketch.value, {
+                    start: e.detail.start.offset,
+                    end: e.detail.end.offset,
+                });
 
-		if (window.interpreter.running) {
-			// gtag('event', 'Stop', {event_category: 'Execute Sketch'});
-			window.interpreter.stop();
-		}
-	});
+                highlights.innerHTML = highlighted;
+            }
+        }
 
-	this.window.addEventListener('vmstart', e => {
-		playBtn.classList.add('sticky');
-	});
+        if (window.interpreter.running) {
+            // gtag('event', 'Stop', {event_category: 'Execute Sketch'});
+            window.interpreter.stop();
+        }
+    });
 
-	this.window.addEventListener('vmstop', e => {
-		playBtn.classList.remove('sticky');
-		isBannerPinned = true;
-		banner.innerHTML = 'Done.';
-		window.setTimeout(() => {
-			isBannerPinned = false;
-			banner.innerHTML = '';
-		}, 3000);
-	})
+    this.window.addEventListener('vmstart', (e) => {
+        playBtn.classList.add('sticky');
+    });
 
-	window.addEventListener('keydown', e => {
-		
-		if (e.altKey) {
-			paper.classList.add('screenshot');
-		}
-	});
+    this.window.addEventListener('vmstop', (e) => {
+        playBtn.classList.remove('sticky');
+        isBannerPinned = true;
+        banner.innerHTML = 'Done.';
+        window.setTimeout(() => {
+            isBannerPinned = false;
+            banner.innerHTML = '';
+        }, 3000);
+    });
 
-	window.addEventListener('keyup', e => {
-		paper.classList.remove('screenshot');
-	});
+    window.addEventListener('keydown', (e) => {
+        if (e.altKey) {
+            paper.classList.add('screenshot');
+        }
+    });
 
-	// ========== MODAL ==========
+    window.addEventListener('keyup', (e) => {
+        paper.classList.remove('screenshot');
+    });
 
-	closeBtn.addEventListener('click', e => {
-		this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
-		modal.classList.add('invisible');
-		window.setTimeout(() => {
-			modal.classList.add('hidden');
-		}, 150);
-	});
+    // ========== MODAL ==========
 
-	const tabs = document.getElementsByClassName('tab');
+    closeBtn.addEventListener('click', (e) => {
+        this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
+        modal.classList.add('invisible');
+        window.setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 150);
+    });
 
-	for (let i = 0, len = tabs.length; i < len; i++) {
-		tabs.item(i).addEventListener('click', e => {
-			if (!e.target.classList.contains('selected')) {
-				let selected = document.getElementsByClassName('tab selected');
+    const tabs = document.getElementsByClassName('tab');
 
-				for (let j = 0, len = selected.length; j < len; j++) {
-					let id = selected.item(j).getAttribute('id').replace(/-tab$/, '-card');
-					document.getElementById(id).classList.add('hidden');
-					selected.item(j).classList.remove('selected');
-				}
+    for (let i = 0, len = tabs.length; i < len; i++) {
+        tabs.item(i).addEventListener('click', (e) => {
+            if (!e.target.classList.contains('selected')) {
+                let selected = document.getElementsByClassName('tab selected');
 
-				e.target.classList.add('selected');
+                for (let j = 0, len = selected.length; j < len; j++) {
+                    let id = selected.item(j).getAttribute('id').replace(/-tab$/, '-card');
+                    document.getElementById(id).classList.add('hidden');
+                    selected.item(j).classList.remove('selected');
+                }
 
-				let newID = e.target.getAttribute('id').replace(/-tab$/, '-card');
-				document.getElementById(newID).classList.remove('hidden');
-			}
-		});
-	}
+                e.target.classList.add('selected');
 
-	const win = document.getElementById('tut-window');
-	const links = document.getElementsByClassName('tut-hover');
+                let newID = e.target.getAttribute('id').replace(/-tab$/, '-card');
+                document.getElementById(newID).classList.remove('hidden');
+            }
+        });
+    }
 
-	win.style.backgroundImage = "url('" + win.getAttribute('data-bg-src') + "')";
+    const win = document.getElementById('tut-window');
+    const links = document.getElementsByClassName('tut-hover');
 
-	for (let i = 0, len = links.length; i < len; i++) {
-		const a = links.item(i);
-		
-		a.addEventListener('mouseover', e => {
-			win.src = e.target.getAttribute('data-img-src');
-		});
+    win.style.backgroundImage = "url('" + win.getAttribute('data-bg-src') + "')";
 
-		a.addEventListener('mouseout', e => {
-			win.src = "/assets/window.gif";
-		});
+    for (let i = 0, len = links.length; i < len; i++) {
+        const a = links.item(i);
 
-		a.addEventListener('click', e => e.preventDefault());
-	}
+        a.addEventListener('mouseover', (e) => {
+            win.src = e.target.getAttribute('data-img-src');
+        });
+
+        a.addEventListener('mouseout', (e) => {
+            win.src = '/assets/window.gif';
+        });
+
+        a.addEventListener('click', (e) => e.preventDefault());
+    }
 });
-
