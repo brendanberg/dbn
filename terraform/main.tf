@@ -17,21 +17,45 @@ terraform {
 
 provider "aws" {
   region = "us-east-2"
+
+  default_tags {
+    tags = {
+      "Repository" = "brendanberg/dbn"
+    }
+  }
 }
 
 provider "aws" {
   alias  = "acm_provider"
   region = "us-east-1"
+
+  default_tags {
+    tags = {
+      "Repository" = "brendanberg/dbn"
+    }
+  }
 }
 
 provider "aws" {
   alias  = "cloudwatch_provider"
   region = "us-east-1"
+
+  default_tags {
+    tags = {
+      "Repository" = "brendanberg/dbn"
+    }
+  }
 }
 
 provider "aws" {
   alias  = "route53_provider"
   region = "us-east-1"
+
+  default_tags {
+    tags = {
+      "Repository" = "brendanberg/dbn"
+    }
+  }
 
   assume_role {
     role_arn = "arn:aws:iam::${var.route53_provider_account_id}:role/${var.route53_role_name}"
@@ -62,6 +86,10 @@ variable "subdomain" {
   type = string
 }
 
+variable "sandbox_domain" {
+  type = string
+}
+
 variable "repository" {
   type = string
 }
@@ -72,6 +100,8 @@ variable "alarm_subscriber_email" {
 
 locals {
   fqdn = "${var.subdomain}.${var.domain_name}"
+  sandbox_fqdn = "${var.subdomain}.${var.sandbox_domain}"
+  account_id = data.aws_caller_identity.current.account_id
 }
 
 data "aws_route53_zone" "default" {
@@ -79,3 +109,11 @@ data "aws_route53_zone" "default" {
   name         = var.domain_name
   private_zone = false
 }
+
+data "aws_route53_zone" "sandbox" {
+  provider = aws.route53_provider
+  name = var.sandbox_domain
+  private_zone = false
+}
+
+data "aws_caller_identity" "current" {}
