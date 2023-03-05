@@ -33,7 +33,7 @@ const VM = function(canvas, w, h) {
 	this.frame = document.createElement('canvas');
 	this.frame.width = width;
 	this.frame.height = height;
-	const frameCtx = this.frame.getContext('2d');
+	const frameCtx = this.frame.getContext('2d', { alpha: false });
 
 	// Set nearest-neighbor interpolation for zooming.
 	frameCtx.webkitImageSmoothingEnabled = false;
@@ -61,7 +61,7 @@ VM.prototype.init = function(chunk) {
 	this.sp = 1;
 	this.fp = 0;
 
-	const frameCtx = this.frame.getContext('2d');
+	const frameCtx = this.frame.getContext('2d', { alpha: false });
 
 	// Set nearest-neighbor interpolation for zooming.
 	frameCtx.webkitImageSmoothingEnabled = false;
@@ -84,7 +84,7 @@ VM.prototype.init = function(chunk) {
 };
 
 VM.prototype.redraw = function() {
-	this.frame.getContext('2d').putImageData(
+	this.frame.getContext('2d', { alpha: false }).putImageData(
 			this.imageData, 0, 0, 0, 0, this.imageData.width, this.imageData.height);
 	this.canvas.redraw(this.frame);
 };

@@ -39,7 +39,7 @@ const Canvas = function(paper) {
 
 	this.width = paper.width;
 	this.height = paper.height;
-	this.paperCtx = paper.getContext('2d');
+	this.paperCtx = paper.getContext('2d', { alpha: false });
 	// Transform, because DBN's origin is bottom left.
 	this.paperCtx.resetTransform();
 	this.paperCtx.setTransform(1, 0, 0, -1, 0, paper.height);
