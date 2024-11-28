@@ -1,3 +1,6 @@
+// Draw by Numeral
+// (c) Brendan Berg 2019-2024
+
 import VM from './vm';
 import AST from './ast';
 import Timer from './timer';

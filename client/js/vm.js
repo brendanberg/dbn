@@ -1,3 +1,6 @@
+// Draw by Numeral
+// (c) Brendan Berg 2019-2024
+
 import Timer from './timer';
 import * as Op from './opcodes';
 

@@ -1,5 +1,5 @@
 /* Draw By Numeral
- * by Brendan Berg
+ * (c) Brendan Berg 2019-2024
  *
  * main.js initializes the PixelPusher VM and connects window UI elements to
  * their desired actions. That's it :)
