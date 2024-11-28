@@ -540,7 +540,7 @@ DBN.prototype.run = async function (source) {
         const now = new Date();
 
         switch (which) {
-            // 1 = hour, 2 = minute, 3 = second, and 4 = millisecond.
+            // 1 = hour, 2 = minute, 3 = second, and 4 = hundredth of a second.
             case 1:
                 return now.getHours();
             case 2:
@@ -548,7 +548,7 @@ DBN.prototype.run = async function (source) {
             case 3:
                 return now.getSeconds();
             case 4:
-                return now.getMilliseconds();
+                return ~~(now.getMilliseconds() / 10);
             default:
                 return 0;
         }

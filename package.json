@@ -1,40 +1,40 @@
 {
-	"name": "draw_by_numeral",
-	"version": "0.1.0",
-	"author": "Brendan Berg <brendan@berg.industries>",
-	"description": "A recreation of John Maeda's Design by Numbers environment",
-	"contributors": [
-		{
-			"name": "Brendan Berg",
-			"email": "brendan@berg.industries"
-		}
-	],
-	"scripts": {
-		"clean": "rm -rf build/*",
-		"watch": "webpack --watch",
-		"start": "webpack serve --open",
-		"build": "webpack",
-		"build:client": "webpack",
-		"build:service": "mkdir -p dist/ && cd service && zip -r ../dist/network.zip ."
-	},
-	"keywords": [
-		"design by numbers",
-		"creative code",
-		"graphics",
-		"beginner"
-	],
-	"devDependencies": {
-		"clean-webpack-plugin": "^4.0.0",
-		"copy-webpack-plugin": "^11.0.0",
-		"mocha": "^10.2.0",
-		"pegjs": "^0.10.0",
-		"pegjs-loader": "^0.5.6",
-		"webpack": "^5.75.0",
-		"webpack-cli": "^5.0.1",
-		"webpack-dev-server": "^4.11.1"
-	},
-	"dependencies": {
-		"axios": ">=0.21.1"
-	},
-	"license": "MIT"
+    "name": "draw_by_numeral",
+    "version": "0.1.0",
+    "author": "Brendan Berg <brendan@berg.industries>",
+    "description": "A recreation of John Maeda's Design by Numbers environment",
+    "contributors": [
+        {
+            "name": "Brendan Berg",
+            "email": "brendan@berg.industries"
+        }
+    ],
+    "scripts": {
+        "clean": "rm -rf build/*",
+        "watch": "webpack --watch",
+        "start": "webpack serve --open",
+        "build": "webpack",
+        "build:client": "webpack",
+        "build:service": "mkdir -p dist/ && cd service && zip -r ../dist/network.zip ."
+    },
+    "keywords": [
+        "design by numbers",
+        "creative code",
+        "graphics",
+        "beginner"
+    ],
+    "devDependencies": {
+        "clean-webpack-plugin": "^4.0.0",
+        "copy-webpack-plugin": "^11.0.0",
+        "mocha": "^10.2.0",
+        "pegjs": "^0.10.0",
+        "pegjs-loader": "^0.5.6",
+        "webpack": "^5.93.0",
+        "webpack-cli": "^5.0.1",
+        "webpack-dev-server": "^4.11.1"
+    },
+    "dependencies": {
+        "axios": ">=0.21.1"
+    },
+    "license": "MIT"
 }
