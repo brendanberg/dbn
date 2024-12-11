@@ -7,10 +7,11 @@
 import axios from 'axios';
 import DBN from './dbn';
 
-const SHOULD_SHOW_MODAL = 'environment:modal:showAtStartup';
+const MODAL_SHOW_AT_STARTUP_KEY = 'environment:modal:showAtStartup';
 const SKETCH_VALUE_KEY = 'environment:sketch.value';
+
 const SKETCH_DEFAULT_PLACEHOLDER =
-    '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon [?] for an introduction and examples.\n';
+    '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon (i) for an introduction and examples.\n';
 
 const uniqueName = () => {
     let result = '';
@@ -33,7 +34,7 @@ window.addEventListener('load', function (ee) {
     if (sketchPath && sketchPath.match(/\.dbn$/)) {
         // If there was a sketch path as a query parameter, make an Ajax
         // request for the file contents and fill the sketch textarea.
-        this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
+        this.localStorage.setItem(MODAL_SHOW_AT_STARTUP_KEY, 'false');
 
         axios
             .get('/' + sketchPath.replace(/^\//, ''))
@@ -151,8 +152,10 @@ window.addEventListener('load', function (ee) {
     const saveBtn = document.getElementById('save');
     const beautifyBtn = document.getElementById('beautify');
     const helpBtn = document.getElementById('help');
-    const closeBtn = document.getElementById('close');
-    const modal = document.getElementById('modal');
+    const openCloseBtn = document.getElementById('open-close');
+    const helpCloseBtn = document.getElementById('help-close');
+    const openModal = document.getElementById('open-modal');
+    const helpModal = document.getElementById('help-modal');
 
     const file = document.getElementById('fileinput');
 
@@ -162,6 +165,8 @@ window.addEventListener('load', function (ee) {
 
         filename = file.name;
 
+        openCloseBtn.dispatchEvent(new Event('click'));
+
         reader.readAsText(file, 'UTF-8');
         reader.addEventListener('load', function (readerEvent) {
             var content = readerEvent.target.result;
@@ -170,9 +175,9 @@ window.addEventListener('load', function (ee) {
         });
     });
 
-    if (this.localStorage.getItem(SHOULD_SHOW_MODAL) !== 'false') {
-        modal.classList.remove('invisible');
-        modal.classList.remove('hidden');
+    if (this.localStorage.getItem(MODAL_SHOW_AT_STARTUP_KEY) !== 'false') {
+        helpModal.classList.remove('invisible');
+        helpModal.classList.remove('hidden');
     }
 
     playBtn.addEventListener('mouseover', function (e) {
@@ -268,7 +273,9 @@ window.addEventListener('load', function (ee) {
             banner.innerHTML = 'Done.';
         }
 
-        file.click();
+        // file.click();
+        openModal.classList.remove('hidden');
+        openModal.classList.remove('invisible');
     });
 
     saveBtn.addEventListener('mouseover', function (e) {
@@ -284,6 +291,7 @@ window.addEventListener('load', function (ee) {
         source.setAttribute('download', filename);
 
         if (document.createEvent) {
+            // We know it's deprecated. This is here for compatibility.
             var event = document.createEvent('MouseEvents');
             event.initEvent('click', true, true);
             source.dispatchEvent(event);
@@ -383,8 +391,8 @@ window.addEventListener('load', function (ee) {
     });
 
     helpBtn.addEventListener('click', function (e) {
-        modal.classList.remove('hidden');
-        modal.classList.remove('invisible');
+        helpModal.classList.remove('hidden');
+        helpModal.classList.remove('invisible');
     });
 
     window.addEventListener('error', (e) => {
@@ -435,36 +443,211 @@ window.addEventListener('load', function (ee) {
         paper.classList.remove('screenshot');
     });
 
-    // ========== MODAL ==========
+    /* ************* *
+     *  Drop Target  *
+     * ************* */
 
-    closeBtn.addEventListener('click', (e) => {
-        this.localStorage.setItem(SHOULD_SHOW_MODAL, 'false');
-        modal.classList.add('invisible');
-        window.setTimeout(() => {
-            modal.classList.add('hidden');
+    let modalErrorTimeout = undefined;
+    const droptarget = document.getElementById('droptarget');
+
+    droptarget.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.target.classList.add('hover');
+
+        // swap paragraphs
+        const paragraphs = droptarget.getElementsByTagName('p');
+
+        for (let i = 0, len = paragraphs.length; i < len; i++) {
+            const paragraph = paragraphs.item(i);
+
+            if (paragraph.classList.contains('marker')) {
+                paragraph.classList.remove('red');
+                paragraph.innerText = 'Drop sketch file here';
+                paragraph.classList.remove('hidden');
+                paragraph.classList.remove('invisible');
+            } else {
+                paragraph.classList.add('hidden');
+                paragraph.classList.add('invisible');
+            }
+        }
+
+        if (modalErrorTimeout !== undefined) {
+            this.window.clearTimeout(modalErrorTimeout);
+        }
+    });
+
+    droptarget.addEventListener('mouseup', (e) => {
+        if (e.target.classList.contains('hover')) {
+            e.target.classList.remove('hover');
+        }
+
+        const paragraphs = droptarget.getElementsByTagName('p');
+
+        for (let i = 0, len = paragraphs.length; i < len; i++) {
+            const paragraph = paragraphs.item(i);
+
+            if (paragraph.classList.contains('marker')) {
+                paragraph.classList.add('hidden');
+                paragraph.classList.add('invisible');
+            } else {
+                paragraph.classList.remove('hidden');
+                paragraph.classList.remove('invisible');
+            }
+        }
+    });
+
+    droptarget.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    droptarget.addEventListener('dragleave', (e) => {
+        const rect = droptarget.getBoundingClientRect();
+        if (!(rect.top < e.y && rect.bottom > e.y && rect.left < e.x && rect.right > e.x)) {
+            e.target.classList.remove('hover');
+
+            const paragraphs = droptarget.getElementsByTagName('p');
+
+            for (let i = 0, len = paragraphs.length; i < len; i++) {
+                const paragraph = paragraphs.item(i);
+
+                if (paragraph.classList.contains('marker')) {
+                    paragraph.classList.add('hidden');
+                    paragraph.classList.add('invisible');
+                } else {
+                    paragraph.classList.remove('hidden');
+                    paragraph.classList.remove('invisible');
+                }
+            }
+        }
+    });
+
+    droptarget.addEventListener('drop', (e) => {
+        e.target.classList.remove('hover');
+        e.preventDefault();
+
+        const filelist = e.dataTransfer.files;
+
+        if (filelist.length == 1) {
+            const reader = new FileReader();
+
+            reader.addEventListener('load', (e) => {
+                sketch.value = e.target.result;
+                window.interpreter.init(paper);
+            });
+
+            reader.readAsText(filelist.item(0));
+            openCloseBtn.dispatchEvent(new Event('click'));
+
+            const paragraphs = droptarget.getElementsByTagName('p');
+
+            for (let i = 0, len = paragraphs.length; i < len; i++) {
+                const paragraph = paragraphs.item(i);
+
+                if (paragraph.classList.contains('marker')) {
+                    paragraph.classList.add('hidden');
+                    paragraph.classList.add('invisible');
+                } else {
+                    paragraph.classList.remove('hidden');
+                    paragraph.classList.remove('invisible');
+                }
+            }
+        } else {
+            const paragraphs = droptarget.getElementsByTagName('p');
+
+            for (let i = 0, len = paragraphs.length; i < len; i++) {
+                const paragraph = paragraphs.item(i);
+
+                if (paragraph.classList.contains('marker')) {
+                    paragraph.classList.add('red');
+                    paragraph.innerText = 'Please only drop one file';
+
+                    modalErrorTimeout = this.window.setTimeout(() => {
+                        const paragraphs = droptarget.getElementsByTagName('p');
+
+                        for (let i = 0, len = paragraphs.length; i < len; i++) {
+                            const paragraph = paragraphs.item(i);
+
+                            if (paragraph.classList.contains('marker')) {
+                                paragraph.classList.remove('red');
+                                paragraph.innerText = 'Drop sketch file here';
+                                paragraph.classList.add('hidden');
+                                paragraph.classList.add('invisible');
+                            } else {
+                                paragraph.classList.remove('hidden');
+                                paragraph.classList.remove('invisible');
+                            }
+                        }
+                    }, 5000);
+                }
+
+                // Add error message that fades out after n seconds
+                // TODO: Add timeout
+            }
+        }
+    });
+
+    /* ******************* *
+     *  File Browser Link  *
+     * ******************* */
+
+    this.document.getElementById('uploadlink').addEventListener('click', (e) => {
+        e.preventDefault();
+        file.click();
+    });
+
+    /* *************************** *
+     *  Enable Tabs on All Modals  *
+     * *************************** */
+
+    const modals = document.getElementsByClassName('modal');
+
+    for (let i = 0, len = modals.length; i < len; i++) {
+        const modal = modals.item(i);
+        const tabs = modal.getElementsByClassName('tab');
+
+        for (let j = 0, len = tabs.length; j < len; j++) {
+            const tab = tabs.item(j);
+
+            tab.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('selected')) {
+                    const selecteds = modal.getElementsByClassName('tab selected');
+
+                    for (let k = 0, len = selecteds.length; k < len; k++) {
+                        const selected = selecteds.item(k);
+                        const id = selected.getAttribute('id').replace(/-tab$/, '-card');
+                        document.getElementById(id).classList.add('hidden');
+                        selected.classList.remove('selected');
+                    }
+
+                    e.target.classList.add('selected');
+
+                    const newID = e.target.getAttribute('id').replace(/-tab$/, '-card');
+                    document.getElementById(newID).classList.remove('hidden');
+                }
+            });
+        }
+    }
+
+    /* ************ *
+     *  Open Modal  *
+     * ************ */
+
+    openCloseBtn.addEventListener('click', (e) => {
+        openModal.classList.add('invisible');
+        this.window.setTimeout(() => {
+            openModal.classList.add('hidden');
         }, 150);
     });
 
-    const tabs = document.getElementsByClassName('tab');
+    // ========== HELP MODAL ==========
 
-    for (let i = 0, len = tabs.length; i < len; i++) {
-        tabs.item(i).addEventListener('click', (e) => {
-            if (!e.target.classList.contains('selected')) {
-                let selected = document.getElementsByClassName('tab selected');
-
-                for (let j = 0, len = selected.length; j < len; j++) {
-                    let id = selected.item(j).getAttribute('id').replace(/-tab$/, '-card');
-                    document.getElementById(id).classList.add('hidden');
-                    selected.item(j).classList.remove('selected');
-                }
-
-                e.target.classList.add('selected');
-
-                let newID = e.target.getAttribute('id').replace(/-tab$/, '-card');
-                document.getElementById(newID).classList.remove('hidden');
-            }
-        });
-    }
+    helpCloseBtn.addEventListener('click', (e) => {
+        this.localStorage.setItem(MODAL_SHOW_AT_STARTUP_KEY, 'false');
+        helpModal.classList.add('invisible');
+        window.setTimeout(() => {
+            helpModal.classList.add('hidden');
+        }, 150);
+    });
 
     const win = document.getElementById('tut-window');
     const links = document.getElementsByClassName('tut-hover');
