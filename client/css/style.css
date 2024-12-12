@@ -251,6 +251,18 @@ div.control button#help:active {
     background: url('/assets/help-active.svg') no-repeat;
 }
 
+div.modal button.close {
+    background: url('/assets/close.svg') no-repeat;
+}
+
+div.modal button.close:hover {
+    background: url('/assets/close-hover.svg') no-repeat;
+}
+
+div.modal button.close:active {
+    background: url('/assets/close-active.svg') no-repeat;
+}
+
 .noselect {
     cursor: default;
     user-select: none;
