@@ -1,5 +1,4 @@
 
-
 # Lambda at Edge as CF origin for /api.v1/*
 resource "aws_lambda_function" "network" {
   provider = aws.acm_provider

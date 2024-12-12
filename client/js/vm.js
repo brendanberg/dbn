@@ -70,6 +70,7 @@ VM.prototype.init = function (chunk) {
     frameCtx.mozImageSmoothingEnabled = false;
     frameCtx.msImageSmoothingEnabled = false;
     frameCtx.imageSmoothingEnabled = false;
+    this.redrawEnabled = true;
     this.pauseTimer.stop();
     this.pauseTimer.reset();
     this.pauseInterval = 0;
