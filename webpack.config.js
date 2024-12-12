@@ -34,7 +34,7 @@ module.exports = {
 		rules: [
 			{
 				test: /\.pegjs$/,
-				use: [{loader: 'pegjs-loader'}]
+				use: 'pegjs-loader',
 			}
 		]
 	}

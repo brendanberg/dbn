@@ -1,3 +1,6 @@
+// Draw by Numeral
+// (c) Brendan Berg 2019-2024
+
 // prettier-ignore
 export const HALT = 0x00,
     CONSTANT = 0x01,

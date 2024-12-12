@@ -1,450 +1,506 @@
 body {
-	background-color: #DDD;
-	margin: 0;
-	padding: 0;
-	font-family: Helvetica, Arial, sans-serif;
+    background-color: #ddd;
+    margin: 0;
+    padding: 0;
+    font-family: Helvetica, Arial, sans-serif;
 }
 
 div.container {
-	background-color: #224578;
-	width: 100%;
-	height: 100%;
-	display: grid;
-	grid-template-columns: [start] 250pt [split] auto [end];
-	grid-template-rows: [top] 20pt [rule] 30pt [hsplit] auto [bottom];
+    background-color: #224578;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: [start] 250pt [split] auto [end];
+    grid-template-rows: [top] 20pt [rule] 30pt [hsplit] auto [bottom];
 }
 
 div.title {
-	background-color: #333;
-	color: #999;
-	padding: 3.5pt 8pt;
-	grid-column: start / end;
-	grid-row: top / rule;
+    background-color: #333;
+    color: #999;
+    padding: 3.5pt 8pt;
+    grid-column: start / end;
+    grid-row: top / rule;
 }
 
 div.title p {
-	white-space: nowrap;
-	overflow: hidden;
-	padding: 0;
-	margin: 0; 
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
 }
 
-div.title a { color: #999; }
-div.title a:visited { color: #999; }
+div.title a {
+    color: #999;
+}
+div.title a:visited {
+    color: #999;
+}
 div.title strong {
-	color: #FFF;
-	padding-right: 4pt;
+    color: #fff;
+    padding-right: 4pt;
 }
 
 div.control {
-	background-color: #999;
-	grid-column: start / split;
-	grid-row: rule / hsplit;
-	padding: 3.5pt 5pt;
+    background-color: #999;
+    grid-column: start / split;
+    grid-row: rule / hsplit;
+    padding: 3.5pt 5pt;
 }
 
 div.dialog {
-	background-color: #CCC;
-	color: #333;
-	padding: 8pt;
-	grid-column: split / end;
-	grid-row: rule / hsplit;
+    background-color: #ccc;
+    color: #333;
+    padding: 8pt;
+    grid-column: split / end;
+    grid-row: rule / hsplit;
 }
 
-div.dialog p { padding: 0; margin: 0; }
+div.dialog p {
+    padding: 0;
+    margin: 0;
+}
+
+div.modal p.red {
+    color: rgb(160, 15, 15);
+}
 
 div.paper {
-	padding: 40pt;
-	height: 200pt;
+    padding: 40pt;
+    height: 200pt;
 }
 
 div.left {
-	background-color: #3C6997;
-	padding: 10pt;
-	height: 240pt;
-	grid-column: start / split;
+    background-color: #3c6997;
+    padding: 10pt;
+    height: 240pt;
+    grid-column: start / split;
 }
 
 div.right {
-	background-color: white;
-	padding: 0;
-	margin: 0;
-	grid-column: split / end;
-	grid-row: hsplit / bottom;
+    background-color: white;
+    padding: 0;
+    margin: 0;
+    grid-column: split / end;
+    grid-row: hsplit / bottom;
 }
 
 canvas#paper {
-	cursor: crosshair;
-	background-color: #FFF;
-	border: 1px solid #000;
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
-	image-rendering: optimizeSpeed;             /* Older versions of FF          */
-	image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
-	image-rendering: -webkit-optimize-contrast; /* Safari                        */
-	image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
-	image-rendering: pixelated;                 /* Awesome future-browsers       */
-	-ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+    cursor: crosshair;
+    background-color: #fff;
+    border: 1px solid #000;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    image-rendering: optimizeSpeed; /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges; /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges; /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated; /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor; /* IE                            */
 }
 
 canvas#paper.screenshot {
-	cursor: url('/assets/camera.png') 16 18, auto;
+    cursor: url('/assets/camera.png') 16 18, auto;
 }
 
 textarea.code {
-	position: relative;
-	background-color: transparent;
-	font-family: "Source Code Pro", monospace;
-	font-size: 10pt;
-	padding: 10pt;
-	margin: 0;
-	border: 0;
-	border-radius: 0;
-	outline: none;
-	resize: none;
-	width: 100%;
-	height: calc(100% - 50pt); /* This is a nasty hack :( */
-	box-sizing: border-box;
-	-o-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	tab-size: 4;
-	-o-tab-size: 4;
-	-moz-tab-size: 4;
-	-webkit-tab-size: 4;
+    position: relative;
+    background-color: transparent;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 10pt;
+    padding: 10pt;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    resize: none;
+    width: 100%;
+    height: calc(100% - 50pt); /* This is a nasty hack :( */
+    box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    tab-size: 4;
+    -o-tab-size: 4;
+    -moz-tab-size: 4;
+    -webkit-tab-size: 4;
 }
 
 .backdrop {
-	position: absolute;
-	background-color: #FFF;
-	overflow: hidden;
-	height: 100%;
-	width: 100%;
+    position: absolute;
+    background-color: #fff;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
 }
 
 .highlights {
-	color: transparent;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	font-size: 10pt;
-	font-family: "Source Code Pro", monospace;
-	padding: 10pt;
-	overflow: hidden;
+    color: transparent;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+    font-family: 'Source Code Pro', monospace;
+    padding: 10pt;
+    overflow: hidden;
 }
 
 mark {
     color: transparent;
-	border-radius: 3pt;
-    background-color: #EB0;
-	padding: 0 2pt;
-	margin: 0 -2pt;
-	text-shadow: 0 0 0.3em #FFF, 0 0 0.3em #FFF;
+    border-radius: 3pt;
+    background-color: #eb0;
+    padding: 0 2pt;
+    margin: 0 -2pt;
+    text-shadow: 0 0 0.3em #fff, 0 0 0.3em #fff;
 }
 
 button.slim {
-	background-color: inherit;
-	border: 0;
-	margin: 0;
-	padding: 0;
+    background-color: inherit;
+    border: 0;
+    margin: 0;
+    padding: 0;
 }
 
 button {
-	display: inline-block;
-	cursor: pointer;
-	background-color: inherit;
-	width: 22pt;
-	height: 22pt;
-	border: 0;
-	padding: 0;
-	margin: 0 1.5pt;
+    display: inline-block;
+    cursor: pointer;
+    background-color: inherit;
+    width: 22pt;
+    height: 22pt;
+    border: 0;
+    padding: 0;
+    margin: 0 1.5pt;
 }
 
 div.control button#play {
-	background: url('/assets/play.svg') no-repeat;
+    background: url('/assets/play.svg') no-repeat;
 }
 
 div.control button#play:hover {
-	background: url('/assets/play-hover.svg') no-repeat;
+    background: url('/assets/play-hover.svg') no-repeat;
 }
 
 div.control button#play:active {
-	background: url('/assets/play-active.svg') no-repeat;
+    background: url('/assets/play-active.svg') no-repeat;
 }
 
 div.control button#play.sticky {
-	background: url('/assets/play-active.svg') no-repeat;
+    background: url('/assets/play-active.svg') no-repeat;
 }
 
 div.control button#play.sticky:hover {
-	background: url('/assets/play-active.svg') no-repeat;
+    background: url('/assets/play-active.svg') no-repeat;
 }
 
 div.control button#stop {
-	background: url('/assets/stop.svg') no-repeat;
+    background: url('/assets/stop.svg') no-repeat;
 }
 
 div.control button#stop:hover {
-	background: url('/assets/stop-hover.svg') no-repeat;
+    background: url('/assets/stop-hover.svg') no-repeat;
 }
 
 div.control button#stop:active {
-	background: url('/assets/stop-active.svg') no-repeat;
+    background: url('/assets/stop-active.svg') no-repeat;
 }
 
 div.control button#open {
-	background: url('/assets/open.svg') no-repeat;
+    background: url('/assets/open.svg') no-repeat;
 }
 
 div.control button#open:hover {
-	background: url('/assets/open-hover.svg') no-repeat;
+    background: url('/assets/open-hover.svg') no-repeat;
 }
 
 div.control button#open:active {
-	background: url('/assets/open-active.svg') no-repeat;
+    background: url('/assets/open-active.svg') no-repeat;
 }
 
 div.control button#save {
-	background: url('/assets/save.svg') no-repeat;
+    background: url('/assets/save.svg') no-repeat;
 }
 
 div.control button#save:hover {
-	background: url('/assets/save-hover.svg') no-repeat;
+    background: url('/assets/save-hover.svg') no-repeat;
 }
 
 div.control button#save:active {
-	background: url('/assets/save-active.svg') no-repeat;
+    background: url('/assets/save-active.svg') no-repeat;
 }
 
 div.control button#beautify {
-	background: url('/assets/beautify.svg') no-repeat;
+    background: url('/assets/beautify.svg') no-repeat;
 }
 
 div.control button#beautify:hover {
-	background: url('/assets/beautify-hover.svg') no-repeat;
+    background: url('/assets/beautify-hover.svg') no-repeat;
 }
 
 div.control button#beautify:active {
-	background: url('/assets/beautify-active.svg') no-repeat;
+    background: url('/assets/beautify-active.svg') no-repeat;
 }
 
 div.control button#help {
-	background: url('/assets/help.svg') no-repeat;
+    background: url('/assets/help.svg') no-repeat;
 }
 
 div.control button#help:hover {
-	background: url('/assets/help-hover.svg') no-repeat;
+    background: url('/assets/help-hover.svg') no-repeat;
 }
 
 div.control button#help:active {
-	background: url('/assets/help-active.svg') no-repeat;
+    background: url('/assets/help-active.svg') no-repeat;
 }
 
+div.modal button.close {
+    background: url('/assets/close.svg') no-repeat;
+}
+
+div.modal button.close:hover {
+    background: url('/assets/close-hover.svg') no-repeat;
+}
+
+div.modal button.close:active {
+    background: url('/assets/close-active.svg') no-repeat;
+}
 
 .noselect {
-	cursor: default;
-	user-select: none;
-	-webkit-user-select: none;
-	-ms-user-select: none;
-	-webkit-touch-callout: none;
-	-o-user-select: none;
-	-moz-user-select: none;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -o-user-select: none;
+    -moz-user-select: none;
 }
 
 .left {
-	float: left;
+    float: left;
 }
 
 .right {
-	float: right;
+    float: right;
 }
 
 .overlay {
-	transition-property: opacity, visibility;
-	transition-duration: 0.15s;
-	transition-timing-function: ease;
-	opacity: 100;
-	position: absolute;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	display: grid;
-	grid-template-columns: 30pt [left] auto [right] 30pt;
-	grid-template-rows: 30pt [top] auto [bottom] 30pt;
-	background-color: rgba(90, 120, 150, 0.9);
-
+    transition-property: opacity, visibility;
+    transition-duration: 0.15s;
+    transition-timing-function: ease;
+    opacity: 100;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 30pt [left] auto [right] 30pt;
+    grid-template-rows: 30pt [top] auto [bottom] 30pt;
+    background-color: rgba(90, 120, 150, 0.9);
 }
 
 @supports ((-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))) {
-	.overlay {
-		background-color: transparent;
-		backdrop-filter: blur(10px);
-		-webkit-backdrop-filter: blur(10px);
-	}
+    .overlay {
+        background-color: transparent;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
 }
 
 div.modal {
-	grid-column: left / right;
-	grid-row: top / bottom;
-	background: #FFF;
-	display: block;
-	padding: 0;
-	box-shadow: 0.2pt 0.2pt 20pt 0 #222;
-	grid-template-rows: [mtop] 30pt [mrule] auto [mbottom];
-	display: grid;
-	overflow-y: hidden;
+    grid-column: left / right;
+    grid-row: top / bottom;
+    background: #fff;
+    display: block;
+    padding: 0;
+    box-shadow: 0.2pt 0.2pt 20pt 0 #222;
+    grid-template-rows: [mtop] 30pt [mrule] auto [mbottom];
+    display: grid;
+    overflow-y: hidden;
 }
 
 div.modal div.frame {
-	grid-row: mrule / mbottom;
-	overflow-y: scroll;
+    grid-row: mrule / mbottom;
+    overflow-y: scroll;
 }
 
 div.frame {
-	line-height: 1.4em;
+    line-height: 1.4em;
+    /* display: flex; */
 }
 
 div.frame section {
-	max-width: 450pt;
-	padding: 16pt 24pt;
-	font-weight: 200;
-	line-height: 1.4em;
-	color: #222;
+    max-width: 450pt;
+    padding: 16pt 24pt;
+    font-weight: 200;
+    line-height: 1.4em;
+    color: #222;
+}
+
+div.frame section.wide {
+    max-width: 1050pt;
+}
+
+div.frame section.full {
+    display: flex;
+    flex-grow: 1;
+    max-width: inherit;
 }
 
 div.frame h2 {
-	font-size: 1.1em;
-	color: #222;
+    font-size: 1.1em;
+    color: #222;
 }
 
 div.frame h3 {
-	font-size: 1em;
-	color: #222;
+    font-size: 1em;
+    color: #222;
 }
 
 div.frame ul {
-	line-height: 1.75em;
-	list-style-type: none;
-	padding: 0;
+    line-height: 1.75em;
+    list-style-type: none;
+    padding: 0;
 }
 
 div.frame img.illustration {
-	width: 100%;
-	background-size: contain;
-	box-shadow: 0.2pt 0.2pt 8pt 0 #222;
+    width: 100%;
+    background-size: contain;
+    box-shadow: 0.2pt 0.2pt 8pt 0 #222;
 }
 
 div.frame img.example {
-	width: 101px;
-	height: 101px;
-	box-shadow: 0.2pt 0.2pt 8pt 0 #222;
+    width: 101px;
+    height: 101px;
+    box-shadow: 0.2pt 0.2pt 8pt 0 #222;
 }
 
 div.frame table {
-	border-collapse: inherit;
-	border-spacing: 10pt;
-	margin-left: -10pt;
+    border-collapse: inherit;
+    border-spacing: 10pt;
+    margin-left: -10pt;
 }
 
 div.frame td {
-	vertical-align: top;
+    vertical-align: top;
 }
 
 div.frame p.aside {
-	background-color: #EEE;
-	color: #555;
-	border: 1px solid #DDD;
-	margin: 0 -5pt;
-	padding: 5pt;
+    background-color: #eee;
+    color: #555;
+    border: 1px solid #ddd;
+    margin: 0 -5pt;
+    padding: 5pt;
 }
 
 div.frame code {
-	color: #111;
-	line-height: inherit;
-	font-family: "Source Code Pro", monospace;
-	font-size: 1em;
+    color: #111;
+    line-height: inherit;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 1em;
 }
 
 div.frame pre {
-	color: #111;
-	font-family: "Source Code Pro", monospace;
-	font-size: 0.95em;
-	line-height: 1.4em;
+    color: #111;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.95em;
+    line-height: 1.4em;
+}
+
+div.modal #upload-card {
+    overflow-y: inherit;
+    display: flex;
+}
+
+div.frame div.dropzone {
+    background-color: rgb(248, 249, 250);
+    border: 1px dashed #c0c0c0;
+    border-radius: 8pt;
+    padding: 10pt;
+    text-align: center;
+    flex-grow: 1;
+}
+
+div#droptarget.hover {
+    background-color: #f0f6ff;
 }
 
 div.frame ul.icon-browser li {
-	display: inline-block;
-	width: 120pt;
-	height: 130pt;
-	text-align: center;
+    display: inline-block;
+    width: 120pt;
+    height: 130pt;
+    text-align: center;
 }
 
-div.frame ul.icon-browser p {
+/* div.frame ul.icon-browser p {
 	font-weight: bold;
-}
+} */
 
 div.frame ul.icon-browser a img {
-	box-shadow: 0.2pt 0.2pt 8pt 0 #444;
+    border: 2pt solid #fff;
+    border-radius: 5pt;
+    box-shadow: 0 0 10pt 0 #999;
 }
 
 div.frame ul.icon-browser a:hover img {
-	box-shadow: 0.2pt 0.2pt 10pt 0 #000;
+    box-shadow: 0 0 15pt 0 #333;
 }
 
-div.frame a { color: #3C6997; text-decoration: none; }
-div.frame a:hover { color: #C90; }
+div.frame a {
+    color: #3c6997;
+    text-decoration: none;
+}
+div.frame a:hover {
+    color: #c90;
+}
 
 div.banner {
-	background-color: #999;
-	grid-row: mtop / mrule;
-	border: 0;
-	padding: 0;
-	margin: 0;
-	letter-spacing: 0.5pt;
+    background-color: #999;
+    grid-row: mtop / mrule;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    letter-spacing: 0.5pt;
 }
 
 div.banner span {
-	display: inline-block;
-	cursor: pointer;
-	color: #444;
-	margin: 0;
-	padding: 8pt;
+    display: inline-block;
+    cursor: pointer;
+    color: #444;
+    margin: 0;
+    padding: 8pt;
 }
 
 div.banner span.selected {
-	cursor: default;
-	background-color: #FFF;
-	border-bottom: 1px solid #FFF;
-	color: #444;
-	box-shadow-left: 0.2pt 0.2pt 20pt 0 #222;
+    cursor: default;
+    background-color: #fff;
+    border-bottom: 1px solid #fff;
+    color: #444;
+    box-shadow-left: 0.2pt 0.2pt 20pt 0 #222;
 }
 
 div.banner button {
-	background-color: #666;
-	color: #9A9A9A;
-	font-size: 15pt;
-	height: 20pt;
-	width: 20pt;
-	padding: 0;
-	margin: 5pt;
+    background-color: #666;
+    color: #9a9a9a;
+    font-size: 15pt;
+    height: 20pt;
+    width: 20pt;
+    padding: 0;
+    margin: 5pt;
 }
 
 div.banner button:hover {
-	color: #69C;
+    color: #69c;
 }
 
 div.banner button:active {
-	background-color: #323232;
+    background-color: #323232;
 }
 
 .invisible {
-	visibility: hidden;
-	opacity: 0;
+    visibility: hidden;
+    opacity: 0;
 }
 
 .hidden {
-	display: none;
+    display: none !important;
 }
-

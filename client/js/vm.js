@@ -1,3 +1,6 @@
+// Draw by Numeral
+// (c) Brendan Berg 2019-2024
+
 import Timer from './timer';
 import * as Op from './opcodes';
 
@@ -67,6 +70,7 @@ VM.prototype.init = function (chunk) {
     frameCtx.mozImageSmoothingEnabled = false;
     frameCtx.msImageSmoothingEnabled = false;
     frameCtx.imageSmoothingEnabled = false;
+    this.redrawEnabled = true;
     this.pauseTimer.stop();
     this.pauseTimer.reset();
     this.pauseInterval = 0;

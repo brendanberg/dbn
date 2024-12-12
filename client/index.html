@@ -1,285 +1,432 @@
 <html>
-	<head>
-		<title>DBN</title>
+    <head>
+        <title>DBN</title>
 
-		<!-- Icons -->
-		<link rel="apple-touch-icon" sizes="57x57" href="/icons/apple-icon-57x57.png?v=2">
-		<link rel="apple-touch-icon" sizes="60x60" href="/icons/apple-icon-60x60.png?v=2">
-		<link rel="apple-touch-icon" sizes="72x72" href="/icons/apple-icon-72x72.png?v=2">
-		<link rel="apple-touch-icon" sizes="76x76" href="/icons/apple-icon-76x76.png?v=2">
-		<link rel="apple-touch-icon" sizes="114x114" href="/icons/apple-icon-114x114.png?v=2">
-		<link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-icon-120x120.png?v=2">
-		<link rel="apple-touch-icon" sizes="144x144" href="/icons/apple-icon-144x144.png?v=2">
-		<link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-icon-152x152.png?v=2">
-		<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-icon-180x180.png?v=2">
-		<link rel="icon" type="image/png?v=2" sizes="192x192" href="/icons/android-icon-192x192.png?v=2">
-		<link rel="icon" type="image/png?v=2" sizes="32x32" href="/icons/favicon-32x32.png?v=2">
-		<link rel="icon" type="image/png?v=2" sizes="96x96" href="/icons/favicon-96x96.png?v=2">
-		<link rel="icon" type="image/png?v=2" sizes="16x16" href="/icons/favicon-16x16.png?v=2">
-		<link rel="manifest" href="/icons/manifest.json">
-		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png?v=2">
-		<meta name="theme-color" content="#ffffff">
+        <!-- Icons -->
+        <link rel="apple-touch-icon" sizes="57x57" href="/icons/apple-icon-57x57.png?v=2" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/icons/apple-icon-60x60.png?v=2" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/icons/apple-icon-72x72.png?v=2" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/icons/apple-icon-76x76.png?v=2" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/icons/apple-icon-114x114.png?v=2" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-icon-120x120.png?v=2" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/icons/apple-icon-144x144.png?v=2" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-icon-152x152.png?v=2" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-icon-180x180.png?v=2" />
+        <link rel="icon" type="image/png?v=2" sizes="192x192" href="/icons/android-icon-192x192.png?v=2" />
+        <link rel="icon" type="image/png?v=2" sizes="32x32" href="/icons/favicon-32x32.png?v=2" />
+        <link rel="icon" type="image/png?v=2" sizes="96x96" href="/icons/favicon-96x96.png?v=2" />
+        <link rel="icon" type="image/png?v=2" sizes="16x16" href="/icons/favicon-16x16.png?v=2" />
+        <link rel="manifest" href="/icons/manifest.json" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png?v=2" />
+        <meta name="theme-color" content="#ffffff" />
 
-		<!-- Font & Styles -->
-		<link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet">
-		<link rel="stylesheet" href="/css/style.css?v=4k9qx" type="text/css" />
+        <!-- Font & Styles -->
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" />
+        <link rel="stylesheet" href="/css/style.css?v=4k9qx" type="text/css" />
 
-		<link rel="preload" href="/assets/play-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/play-active.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/stop-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/stop-active.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/open-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/open-active.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/save-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/save-active.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/beautify-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/beautify-active.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/help-hover.svg" as="image" crossorgin>
-		<link rel="preload" href="/assets/help-active.svg" as="image" crossorgin>
+        <link rel="preload" href="/assets/play-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/play-active.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/stop-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/stop-active.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/open-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/open-active.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/save-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/save-active.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/beautify-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/beautify-active.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/help-hover.svg" as="image" crossorgin />
+        <link rel="preload" href="/assets/help-active.svg" as="image" crossorgin />
 
-		<!-- Load the Good Stuff -->
-		<script src="/js/main.bundle.js?v=4k9qx" type="application/javascript"></script>
-		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-134176228-2"></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'UA-134176228-2');
-		</script>
-	</head>
-	<body>
-		<div class="container">
-			<div class="title">
-				<p class="noselect"><strong>Draw By Numeral</strong>
-				by <a href="https://berg.industries">Brendan Berg</a>
-				based on <a href="http://dbn.media.mit.edu">Design By Numbers</a>,
-				created at the MIT Media Lab</p>
-			</div>
-			<div class="control">
-				<span class="left noselect">
-					<button id="play"></button>
-					<button id="stop"></button>
-				</span>
-				<span class="right noselect">
-					<button id="open"></button>
-					<button id="save"></button>
-					<button id="beautify"></button>
-					<button id="help"></button>
-				</span>
-			</div>
-			<div class="dialog"><p id="message-banner"></p></div>
-			<div class="column left noselect">
-				<div class="paper">
-					<canvas id="paper" width="202" height="202"></canvas>
-				</div>
+        <!-- Load the Good Stuff -->
+        <script src="/js/main.bundle.js?v=4k9qx" type="application/javascript"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-134176228-2"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', 'UA-134176228-2');
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="title">
+                <p class="noselect">
+                    <strong>Draw By Numeral</strong> by <a href="https://berg.industries">Brendan Berg</a> based on
+                    <a href="http://dbn.media.mit.edu">Design By Numbers</a>, created at the MIT Media Lab
+                </p>
+            </div>
+            <div class="control">
+                <span class="left noselect">
+                    <button id="play"></button>
+                    <button id="stop"></button>
+                </span>
+                <span class="right noselect">
+                    <button id="open"></button>
+                    <button id="save"></button>
+                    <button id="beautify"></button>
+                    <button id="help"></button>
+                </span>
+            </div>
+            <div class="dialog"><p id="message-banner"></p></div>
+            <div class="column left noselect">
+                <div class="paper">
+                    <canvas id="paper" width="202" height="202"></canvas>
+                </div>
 
-				<input class="hidden" type="file"
-				id="fileinput" name="fileinput"
-				accept=".dbn">
-			</div>
-			<div class="column right" style="position: relative;">
-				<div class="backdrop noselect" id="bk"><div class="highlights noselect" id="hl"></div></div>
-				<textarea class="code" id="sketch" spellcheck="false"></textarea>
-				<!--// Type a DBN program or click the "Open" icon (&#x21EA;) for examples.
+                <input class="hidden" type="file" id="fileinput" name="fileinput" accept=".dbn" />
+            </div>
+            <div class="column right" style="position: relative">
+                <div class="backdrop noselect" id="bk"><div class="highlights noselect" id="hl"></div></div>
+                <textarea class="code" id="sketch" spellcheck="false"></textarea>
+                <!--// Type a DBN program or click the "Open" icon (&#x21EA;) for examples.
 				-->
-			</div>
-		</div>
-		<div class="overlay hidden invisible" id="modal">
-			<div class="modal">
-				<div class="banner noselect">
-					<span class="tab selected" id="intro-tab">Introduction</span>
-					<span class="tab" id="environment-tab">Environment</span>
-					<span class="tab" id="language-tab">Language</span>
-					<span class="tab" id="examples-tab">Examples</span>
-					<button class="right" id="close">&#x2717;</button>
-				</div>
-				<div class="frame" id="intro-card">
-					<section>
+            </div>
+        </div>
+        <div class="overlay hidden invisible" id="open-modal">
+            <div class="modal">
+                <div class="banner noselect">
+                    <span class="tab selected" id="examples-tab">Examples</span>
+                    <span class="tab" id="upload-tab">Upload</span>
+                    <button class="right close" id="open-close"></button>
+                </div>
+                <div class="frame" id="examples-card">
+                    <section class="wide">
+                        <ul class="icon-browser">
+                            <li>
+                                <a href="/?=examples/lines_vars.dbn">
+                                    <img src="/examples/lines_vars.png" class="example" width="101" height="101" />
+                                    <p>Lines and Variables</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/?=examples/looping.dbn">
+                                    <img src="/examples/looping.png" class="example" width="101" height="101" />
+                                    <p>Looping</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/?=examples/questions.dbn">
+                                    <img src="/examples/questions.png" class="example" width="101" height="101" />
+                                    <p>Questions</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/?=examples/nesting.dbn">
+                                    <img src="/examples/nesting.png" class="example" width="101" height="101" />
+                                    <p>Nesting</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/?=examples/commands.dbn">
+                                    <img src="/examples/commands.png" class="example" width="101" height="101" />
+                                    <p>Commands</p>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/?=examples/landscape.dbn">
+                                    <img src="/examples/landscape.png" class="example" width="101" height="101" />
+                                    <p>Landscape</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </section>
+                </div>
 
-					<p><strong>Draw By Numeral</strong> is a programming environment and language designed
-					to introduce the basic concepts of computer programming by giving
-					immediate feedback through a simple graphics rendering context.</p>
-					</section>
-				</div>
-				<div class="frame hidden" id="environment-card">
-					<section>
-					<h2>The DBN Environment</h2>
+                <div class="frame hidden" id="upload-card">
+                    <section class="full">
+                        <div class="dropzone" id="droptarget">
+                            <p>Drag a sketch file here or <a href="#" id="uploadlink">click here to upload</a></p>
+                            <p class="hidden invisible marker">Drop sketch file here</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        <div class="overlay hidden invisible" id="help-modal">
+            <div class="modal">
+                <div class="banner noselect">
+                    <span class="tab selected" id="intro-tab">Introduction</span>
+                    <span class="tab" id="environment-tab">Environment</span>
+                    <span class="tab" id="language-tab">Language</span>
+                    <button class="right close" id="help-close"></button>
+                </div>
+                <div class="frame" id="intro-card">
+                    <section>
+                        <p>
+                            <strong>Draw By Numeral</strong> is a programming environment and language designed to
+                            introduce the basic concepts of computer programming by giving immediate feedback through a
+                            simple graphics rendering context.
+                        </p>
+                    </section>
+                </div>
+                <div class="frame hidden" id="environment-card">
+                    <section>
+                        <h2>The DBN Environment</h2>
 
-					<p>The DBN environment presents a code editor and graphical output
-					side-by-side in a single window. The features of the environment are
-					described below.</p>
+                        <p>
+                            The DBN environment presents a code editor and graphical output side-by-side in a single
+                            window. The features of the environment are described below.
+                        </p>
 
-					<ul>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/editor.gif">Code Editor</a></strong>
-						&mdash; DBN programs can be written and edited in the editor pane</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/output.gif">Output Pane</a></strong>
-						&mdash; displays the virtual sheet of paper that programs draw on</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/play.gif">Play
-							Button</a></strong>
-						&mdash; checks that the program can be run and starts the program</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/stop.gif">Stop
-							Button</a></strong>
-						&mdash; stops the currently running program</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/open.gif">Open
-							Button</a></strong>
-						&mdash; displays the Open panel to load saved DBN programs</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/save.gif">Save
-							Button</a></strong>
-						&mdash; displays the Save panel to save the current DBN program</li>
-					<li><strong><a href="#" class="tut-hover" data-img-src="/assets/beautify.gif">Beautify
-							Button</a></strong>
-						&mdash; re-indents the program text for easier reading</li>
-					</ul>
+                        <ul>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/editor.gif"
+                                        >Code Editor</a
+                                    ></strong
+                                >
+                                &mdash; DBN programs can be written and edited in the editor pane
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/output.gif"
+                                        >Output Pane</a
+                                    ></strong
+                                >
+                                &mdash; displays the virtual sheet of paper that programs draw on
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/play.gif"
+                                        >Play Button</a
+                                    ></strong
+                                >
+                                &mdash; checks that the program can be run and starts the program
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/stop.gif"
+                                        >Stop Button</a
+                                    ></strong
+                                >
+                                &mdash; stops the currently running program
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/open.gif"
+                                        >Open Button</a
+                                    ></strong
+                                >
+                                &mdash; displays the Open panel to load saved DBN programs
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/save.gif"
+                                        >Save Button</a
+                                    ></strong
+                                >
+                                &mdash; displays the Save panel to save the current DBN program
+                            </li>
+                            <li>
+                                <strong
+                                    ><a href="#" class="tut-hover" data-img-src="/assets/beautify.gif"
+                                        >Beautify Button</a
+                                    ></strong
+                                >
+                                &mdash; re-indents the program text for easier reading
+                            </li>
+                        </ul>
 
-					<img src="/assets/window.gif" id="tut-window" class="illustration" data-bg-src="/assets/background.gif">
-					</section>
+                        <img
+                            src="/assets/window.gif"
+                            id="tut-window"
+                            class="illustration"
+                            data-bg-src="/assets/background.gif"
+                        />
+                    </section>
 
-					<section>
-					<h2>Hidden Features</h2>
-					
-					<p><strong>Saving DBN Images:</strong> Holding down your keyboard's 
-					option key while hovering the mouse pointer over the output pane turns
-					the cursor into a camera icon. Click to save the current image as a
-					PNG file.</p>
-					
-					<p><strong>Explaining Pixels:</strong> Holding down the shift key while
-					hovering the mouse pointer over the output pane highlights the
-					line of code that produced the pixel under the mouse position.</p>
-					</section>
-				</div>
-				<div class="frame hidden" id="language-card">
-					<section>
-					<h2>The DBN Language</h2>
+                    <section>
+                        <h2>Hidden Features</h2>
 
-					<p>The DBN language is designed to be easy for beginners.
-					The language intentonally leaves out many features that are
-					common in general-purpouse languages such as Python or JavaScript.
-					By limiting the features of DBN, we can spend less time
-					learning the complexities of a general-purpose language and
-					more time learning broader concepts of computer programming.</p>
+                        <p>
+                            <strong>Saving DBN Images:</strong> Holding down your keyboard's option key while hovering
+                            the mouse pointer over the output pane turns the cursor into a camera icon. Click to save
+                            the current image as a PNG file.
+                        </p>
 
-					<p>A DBN program's output is a virtual sheet of paper. The
-					paper is divided into a grid of 101 &times; 101 squares,
-					each of which can be filled with a shade of gray. This document
-					describes the basic concepts of the DBN language, which you
-					can use to construct any number of programs that are capable
-					of producing a vast universe of images.</p>
+                        <p>
+                            <strong>Explaining Pixels:</strong> Holding down the shift key while hovering the mouse
+                            pointer over the output pane highlights the line of code that produced the pixel under the
+                            mouse position.
+                        </p>
+                    </section>
+                </div>
+                <div class="frame hidden" id="language-card">
+                    <section>
+                        <h2>The DBN Language</h2>
 
-					<h3>Making a Statement</h3>
+                        <p>
+                            The DBN language is designed to be easy for beginners. The language intentonally leaves out
+                            many features that are common in general-purpouse languages such as Python or JavaScript. By
+                            limiting the features of DBN, we can spend less time learning the complexities of a
+                            general-purpose language and more time learning broader concepts of computer programming.
+                        </p>
 
-					<p>The simplest DBN program consists of a single statement:</p>
+                        <p>
+                            A DBN program's output is a virtual sheet of paper. The paper is divided into a grid of 101
+                            &times; 101 squares, each of which can be filled with a shade of gray. This document
+                            describes the basic concepts of the DBN language, which you can use to construct any number
+                            of programs that are capable of producing a vast universe of images.
+                        </p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/statements_0.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0</pre></td>
-						</tr>
-					</table>
+                        <h3>Making a Statement</h3>
 
-					<p>This statement tells DBN to color the entire paper white.
-					Taking a closer look at the statement, we see it consists of
-					a command name (<code>Paper</code>), followed by a space, and
-					then a number that tells DBN how light or dark the paper
-					should be. We call this numerical value an <em>argument</em>.</p>
-					
-					<p class="aside">Grayscale values in DBN are represented as
-					numbers from 0 (white) to 100 (black).</p>
+                        <p>The simplest DBN program consists of a single statement:</p>
 
-					<p>Let's look at a more complex example. The following
-					DBN program draws a single line from the lower left to the
-					upper right of the paper.</p>
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/statements_0.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td><pre>Paper 0</pre></td>
+                            </tr>
+                        </table>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/statements_1.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0
+                        <p>
+                            This statement tells DBN to color the entire paper white. Taking a closer look at the
+                            statement, we see it consists of a command name (<code>Paper</code>), followed by a space,
+                            and then a number that tells DBN how light or dark the paper should be. We call this
+                            numerical value an <em>argument</em>.
+                        </p>
+
+                        <p class="aside">
+                            Grayscale values in DBN are represented as numbers from 0 (white) to 100 (black).
+                        </p>
+
+                        <p>
+                            Let's look at a more complex example. The following DBN program draws a single line from the
+                            lower left to the upper right of the paper.
+                        </p>
+
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/statements_1.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Paper 0
 Pen 100
-Line 0 0 100 100</pre></td>
-						</tr>
-					</table>
+Line 0 0 100 100</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
 
-					<p>This program consists of three statements, each on its
-					own line. In DBN, only one statement may be written per
-					line, and statements cannot span multiple lines.</p>
-					
-					<p>Looking at the second line, we see a new command,
-					<code>Pen</code>, which takes one argument. Like
-					the <code>Paper</code> command, the argument represents
-					the desired grayscale value. The <code>Line</code> command
-					expects four arguments, which must be separated by spaces.</p>
+                        <p>
+                            This program consists of three statements, each on its own line. In DBN, only one statement
+                            may be written per line, and statements cannot span multiple lines.
+                        </p>
 
-					<p>The arguments to the <code>Line</code> command tell it
-					the x and y coordinates of the two points that will be
-					connected by a line. In this example, the program draws a
-					line from <nobr>(0, 0)</nobr> to <nobr>(100, 100)</nobr>.
-					The order of the arguments to the command is important:
-					the first two arguments represent the x and y coordinates of
-					the first point, and the last two arguments represent the
-					coordinates of the second point.</p>
+                        <p>
+                            Looking at the second line, we see a new command, <code>Pen</code>, which takes one
+                            argument. Like the <code>Paper</code> command, the argument represents the desired grayscale
+                            value. The <code>Line</code> command expects four arguments, which must be separated by
+                            spaces.
+                        </p>
 
-					<h3>Variables</h3>
+                        <p>
+                            The arguments to the <code>Line</code> command tell it the x and y coordinates of the two
+                            points that will be connected by a line. In this example, the program draws a line from
+                            <nobr>(0, 0)</nobr> to <nobr>(100, 100)</nobr>. The order of the arguments to the command is
+                            important: the first two arguments represent the x and y coordinates of the first point, and
+                            the last two arguments represent the coordinates of the second point.
+                        </p>
 
-					<p>A <em>variable</em> is a placeholder for a numeric value.
-					Anywhere a number is used, a variable may be used in its place.</p>
+                        <h3>Variables</h3>
 
-					<p>We can give the variable a value using the <code>Set</code>
-					command. <code>Set</code> expects two arguments: the first
-					argument is the name we will use to refer to the variable
-					and the second argument is the value that will be assigned
-					to the variable.</p>
+                        <p>
+                            A <em>variable</em> is a placeholder for a numeric value. Anywhere a number is used, a
+                            variable may be used in its place.
+                        </p>
 
-<pre>Set X 50</pre>
+                        <p>
+                            We can give the variable a value using the <code>Set</code> command.
+                            <code>Set</code> expects two arguments: the first argument is the name we will use to refer
+                            to the variable and the second argument is the value that will be assigned to the variable.
+                        </p>
 
-					<p>In the previvous statement, the variable called <code>X</code>
-					gets the value 50. We can refer to <code>X</code> elsewhere
-					in our program by its name, as in the following <code>Line</code>
-					command:</p>
+                        <pre>Set X 50</pre>
 
-<pre>Line 20 X 80 X</pre>
+                        <p>
+                            In the previvous statement, the variable called <code>X</code> gets the value 50. We can
+                            refer to <code>X</code> elsewhere in our program by its name, as in the following
+                            <code>Line</code> command:
+                        </p>
 
-					<p>Since the variable <code>X</code> was previously given
-					the value 50, the program will draw a line from <nobr>(20, 50)</nobr>
-					to <nobr>(80, 50).</nobr></p>
+                        <pre>Line 20 X 80 X</pre>
 
-					<h3>Calculations</h3>
+                        <p>
+                            Since the variable <code>X</code> was previously given the value 50, the program will draw a
+                            line from <nobr>(20, 50)</nobr> to <nobr>(80, 50).</nobr>
+                        </p>
 
-					<p>Sometimes it's helpful to relate multiple values together
-					into a single number. A <em>calculation</em> tells the computer
-					to perform arithmetic on a sequence of numbers and variables.</p>
-					
-					<p>Two of the symbols we use for calculation will be familiar from
-					mathematics lessons in school: <code>+</code> and <code>-</code>
-					signify addition and subtraction. Instead of &times; and &div;,
-					however, we use <code>*</code> and <code>/</code> to signify
-					multiplication and division because we have keys for them on our
-					keyboards.</p>
-					
-					<p>A calculation must be wrapped in parentheses to signal to DBN
-					where the expression begins and ends. The statement in the following
-					example calculates the value 100&minus;50 and sets the paper to the
-					resulting value:<p>
+                        <h3>Calculations</h3>
 
-<pre>Paper (100 - 50)</pre>
+                        <p>
+                            Sometimes it's helpful to relate multiple values together into a single number. A
+                            <em>calculation</em> tells the computer to perform arithmetic on a sequence of numbers and
+                            variables.
+                        </p>
 
-					<p>Parentheses may also be used to force a different order
-					of operations. DBN will compute multiplication and division
-					before addition and subtraction (just like how we learned
-					to do arithmetic in school). If we want to perform addition
-					before multiplication, just enclose the addition in parentheses
-					like this: <code>((10 + 1) * 50)</code>.</p>
+                        <p>
+                            Two of the symbols we use for calculation will be familiar from mathematics lessons in
+                            school: <code>+</code> and <code>-</code> signify addition and subtraction. Instead of
+                            &times; and &div;, however, we use <code>*</code> and <code>/</code> to signify
+                            multiplication and division because we have keys for them on our keyboards.
+                        </p>
 
-					<h3>Repeating Yourself</h3>
+                        <p>
+                            A calculation must be wrapped in parentheses to signal to DBN where the expression begins
+                            and ends. The statement in the following example calculates the value 100&minus;50 and sets
+                            the paper to the resulting value:
+                        </p>
 
-					<p>Loops are a way to perform a sequence of statements
-					repeatedly. We could perform a command multiple times by typing it in
-					repeatedly, but as you can see in the following example, it
-					quickly becomes tedious to type.</p>
+                        <p></p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/looping_0.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0
+                        <pre>Paper (100 - 50)</pre>
+
+                        <p>
+                            Parentheses may also be used to force a different order of operations. DBN will compute
+                            multiplication and division before addition and subtraction (just like how we learned to do
+                            arithmetic in school). If we want to perform addition before multiplication, just enclose
+                            the addition in parentheses like this: <code>((10 + 1) * 50)</code>.
+                        </p>
+
+                        <h3>Repeating Yourself</h3>
+
+                        <p>
+                            Loops are a way to perform a sequence of statements repeatedly. We could perform a command
+                            multiple times by typing it in repeatedly, but as you can see in the following example, it
+                            quickly becomes tedious to type.
+                        </p>
+
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/looping_0.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Paper 0
 Pen 70
 Line 0 40 100 40
 Line 0 60 100 60
@@ -287,120 +434,168 @@ Line 0 70 100 70
 Line 0 75 100 75
 Line 0 78 100 78
 Line 0 80 100 80
-</pre></td>
-						</tr>
-					</table>
+</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
 
-					<p>To make it easier to perform repetition in your programs,
-					DBN provides commands to repeat a sequence of statements
-					multiple times. <code>Repeat</code> is one such command.</p>
+                        <p>
+                            To make it easier to perform repetition in your programs, DBN provides commands to repeat a
+                            sequence of statements multiple times. <code>Repeat</code> is one such command.
+                        </p>
 
-					<p>A <code>Repeat</code> statement expects a variable name 
-					that will hold the current iteration count, a value from
-					which to start counting, and a value to count until. The
-					<code>Repeat</code> statement must be followed by a
-					sequence of statements enclosed in braces (called a
-					<em>block</em>.)</p>
+                        <p>
+                            A <code>Repeat</code> statement expects a variable name that will hold the current iteration
+                            count, a value from which to start counting, and a value to count until. The
+                            <code>Repeat</code> statement must be followed by a sequence of statements enclosed in
+                            braces (called a <em>block</em>.)
+                        </p>
 
-					<p>Inside the block, we can refer to the variable and use
-					it as a value to the repeated statements. This lets us
-					repeat ourselves while changing what we say slightly each time</p>
+                        <p>
+                            Inside the block, we can refer to the variable and use it as a value to the repeated
+                            statements. This lets us repeat ourselves while changing what we say slightly each time
+                        </p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/looping_1.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/looping_1.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Paper 0
 Repeat X 0 100
 {
     Pen X
     Line X 0 X 100
-}</pre></td>
-						</tr>
-					</table>
+}</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
 
-					<p>In the preceding example, the <code>Repeat</code>
-					statement begins by giving <code>X</code> the value 0. It then executes
-					the statements in the block and increments the value of <code>X</code>
-					by one before repeating. Once the value of <code>X</code> exceeds 100,
-					the repetition stops and execution continues with the rest
-					of the program.</p>
+                        <p>
+                            In the preceding example, the <code>Repeat</code> statement begins by giving
+                            <code>X</code> the value 0. It then executes the statements in the block and increments the
+                            value of <code>X</code> by one before repeating. Once the value of <code>X</code> exceeds
+                            100, the repetition stops and execution continues with the rest of the program.
+                        </p>
 
-					<p class="aside">Loops don't always have to count up! If
-					the <code>Repeat</code> statement's end value is
-					<em>less than</em> the start value, the iteration count will
-					<em>decrement</em> by 1 after each execution of the loop body.</p>
+                        <p class="aside">
+                            Loops don't always have to count up! If the <code>Repeat</code> statement's end value is
+                            <em>less than</em> the start value, the iteration count will <em>decrement</em> by 1 after
+                            each execution of the loop body.
+                        </p>
 
-					<h3>Asking Questions</h3>
+                        <h3>Asking Questions</h3>
 
-					<p>Occasionally we would like to be able to run a sequence
-					of statements only when certain conditions are true. DBN
-					provides four comparison commands that test whether the
-					two provided values have a particular relation, and execute
-					the block directly below them only when the desired relation
-					holds.</p>
+                        <p>
+                            Occasionally we would like to be able to run a sequence of statements only when certain
+                            conditions are true. DBN provides four comparison commands that test whether the two
+                            provided values have a particular relation, and execute the block directly below them only
+                            when the desired relation holds.
+                        </p>
 
-					<p>Consider this program:</p>
+                        <p>Consider this program:</p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/conditions_0.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/conditions_0.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Paper 0
 Pen 100
 Set A 20
 Smaller? A 50
 {
     Line A A 50 50
-}</pre></td>
-						</tr>
-					</table>
+}</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
 
-					<p>The <code>Smaller?</code> command tests whether the first
-					argument is less than the second, and since the value in
-					the variable <code>A</code> is less than 50, the test passes
-					and the program executes the block with the <code>Line</code>
-					command. If we were to edit the program so the value of
-					<code>A</code> were 80, the test would fail and no line
-					would be drawn.</p>
+                        <p>
+                            The <code>Smaller?</code> command tests whether the first argument is less than the second,
+                            and since the value in the variable <code>A</code> is less than 50, the test passes and the
+                            program executes the block with the <code>Line</code>
+                            command. If we were to edit the program so the value of
+                            <code>A</code> were 80, the test would fail and no line would be drawn.
+                        </p>
 
-					<p>The three other comparison commands are <code>NotSmaller?</code>,
-					which tests whether the first argument is larger than or
-					the same as the second argument; <code>Same?</code> which
-					tests whether the two arguments are equal; and
-					<code>NotSame?</code>, which tests whether the two arguments
-					are different.</p>
-					
-					<p>Comparisons are frequently helpful when writing loops.
-					If we want to execute certain commands only when the
-					iteration count is within a desired range, we can use
-					a comparison statement inside the loop body</p>
+                        <p>
+                            The three other comparison commands are <code>NotSmaller?</code>, which tests whether the
+                            first argument is larger than or the same as the second argument; <code>Same?</code> which
+                            tests whether the two arguments are equal; and <code>NotSame?</code>, which tests whether
+                            the two arguments are different.
+                        </p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/conditions_1.png' class='example' width='101' height='101'></td>
-<td><pre>Repeat X 0 100
+                        <p>
+                            Comparisons are frequently helpful when writing loops. If we want to execute certain
+                            commands only when the iteration count is within a desired range, we can use a comparison
+                            statement inside the loop body
+                        </p>
+
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/conditions_1.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Repeat X 0 100
 {
     Pen X
     Smaller? X 50
     {
         Line 0 X 100 X
     }
-}</pre></td>
-						</tr>
-					</table>
+}</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
 
-					<p>As we repeat from 0 to 100, we test the value of <code>X</code>
-					each time through the loop, and only draw a line if <code>X</code>
-					is less than 50.</p>
+                        <p>
+                            As we repeat from 0 to 100, we test the value of <code>X</code> each time through the loop,
+                            and only draw a line if <code>X</code> is less than 50.
+                        </p>
 
-					<h3>Defining Commands</h3>
+                        <h3>Defining Commands</h3>
 
-					<p>We can define our own commands with the <code>Command</code>
-					command.</p>
+                        <p>We can define our own commands with the <code>Command</code> command.</p>
 
-					<table>
-						<tr>
-<td><img src='/assets/examples/commands_0.png' class='example' width='101' height='101'></td>
-<td><pre>Paper 0
+                        <table>
+                            <tr>
+                                <td>
+                                    <img
+                                        src="/assets/examples/commands_0.png"
+                                        class="example"
+                                        width="101"
+                                        height="101"
+                                    />
+                                </td>
+                                <td>
+                                    <pre>
+Paper 0
 Pen 100
 Command Rectangle x0 y0 x1 y1
 {
@@ -410,44 +605,14 @@ Command Rectangle x0 y0 x1 y1
     Line x1 y0 x1 y1
 }
 Rectangle 30 30 70 70
-</pre></td>
-						</tr>
-					</table>
-					</section>
-				</div>
-				<div class="frame hidden" id="examples-card">
-					<section>
-						<h2>Examples</h2>
-						<ul class="icon-browser">
-							<li><a href="/?=examples/lines_vars.dbn">
-								<img src="/examples/lines_vars.png" class="example" width="101" height="101">
-								<p>Lines and Variables</p>
-							</a></li>
-							<li><a href="/?=examples/looping.dbn">
-								<img src="/examples/looping.png" class="example" width="101" height="101">
-								<p>Looping</p>
-							</a></li>
-							<li><a href="/?=examples/questions.dbn">
-								<img src="/examples/questions.png" class="example" width="101" height="101">
-								<p>Questions</p>
-							</a></li>
-							<li><a href="/?=examples/nesting.dbn">
-								<img src="/examples/nesting.png" class="example" width="101" height="101">
-								<p>Nesting</p>
-							</a></li>
-							<li><a href="/?=examples/commands.dbn">
-								<img src="/examples/commands.png" class="example" width="101" height="101">
-								<p>Commands</p>
-							</a></li>
-							<li><a href="/?=examples/landscape.dbn">
-								<img src="/examples/landscape.png" class="example" width="101" height="101">
-								<p>Landscape</p>
-							</a></li>
-						</ul>
-					</section>
-				</div>
-			</div>
-		</div>
-
-	</body>
+</pre
+                                    >
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
