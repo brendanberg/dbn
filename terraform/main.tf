@@ -2,16 +2,18 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.16"
+      version = "~> 5.82"
     }
   }
 
   required_version = ">= 1.2.0"
 
   backend "s3" {
-    bucket = "dbn-berg-industries-tf-state20230217203011463900000001"
-    key    = "tf-state"
-    region = "us-east-2"
+    encrypt        = false
+    region         = "us-east-1"
+    bucket         = "berg-industries-101672552205-us-east-1-tfstate"
+    dynamodb_table = "berg-industries-101672552205-us-east-1-tfstate-lock"
+    key            = "brendanberg/dbn"
   }
 }
 
@@ -99,9 +101,9 @@ variable "alarm_subscriber_email" {
 }
 
 locals {
-  fqdn = "${var.subdomain}.${var.domain_name}"
+  fqdn         = "${var.subdomain}.${var.domain_name}"
   sandbox_fqdn = "${var.subdomain}.${var.sandbox_domain}"
-  account_id = data.aws_caller_identity.current.account_id
+  account_id   = data.aws_caller_identity.current.account_id
 }
 
 data "aws_route53_zone" "default" {
@@ -111,8 +113,8 @@ data "aws_route53_zone" "default" {
 }
 
 data "aws_route53_zone" "sandbox" {
-  provider = aws.route53_provider
-  name = var.sandbox_domain
+  provider     = aws.route53_provider
+  name         = var.sandbox_domain
   private_zone = false
 }
 

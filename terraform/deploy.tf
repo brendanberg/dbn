@@ -7,11 +7,16 @@ resource "aws_iam_role" "github-deploy" {
   name_prefix          = "${replace(var.name, " ", "")}GithubActionsDeploy"
   max_session_duration = 3600
   assume_role_policy   = data.aws_iam_policy_document.assume-role-policy.json
+}
 
-  inline_policy {
-    name   = "${replace(var.name, " ", "")}GithubActionsS3Policy"
-    policy = data.aws_iam_policy_document.github-deploy-policy.json
-  }
+resource "aws_iam_policy" "github-deploy-policy" {
+  name   = "${replace(var.name, " ", "")}GithubActionsS3Policy"
+  policy = data.aws_iam_policy_document.github-deploy-policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "github-deploy-policy" {
+  role       = aws_iam_role.github-deploy.name
+  policy_arn = aws_iam_policy.github-deploy-policy.arn
 }
 
 data "aws_iam_policy_document" "github-deploy-policy" {

@@ -4,7 +4,7 @@ resource "aws_lambda_function" "network" {
   provider = aws.acm_provider
 
   function_name = "${replace(var.name, " ", "")}NetworkConnector"
-  role          = aws_iam_role.network_lambda_role.arn
+  role          = aws_iam_role.network_lambda.arn
   architectures = ["x86_64"]
 
   filename         = "../dist/network.zip"
@@ -26,17 +26,28 @@ data "archive_file" "network_zip" {
   output_path = "../dist/network.zip"
 }
 
-resource "aws_iam_role" "network_lambda_role" {
+resource "aws_iam_role" "network_lambda" {
   provider = aws.acm_provider
 
-  name                = "${replace(var.name, " ", "")}ExecutionRole"
-  assume_role_policy  = data.aws_iam_policy_document.network_role_policy.json
-  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  name               = "${replace(var.name, " ", "")}ExecutionRole"
+  assume_role_policy = data.aws_iam_policy_document.network_role_policy.json
+}
 
-  inline_policy {
-    name   = "${replace(var.name, " ", "")}LambdaDdbPolicy"
-    policy = data.aws_iam_policy_document.lambda_ddb_access.json
-  }
+resource "aws_iam_policy" "lambda_ddb_access" {
+  name   = "${replace(var.name, " ", "")}LambdaDdbPolicy"
+  policy = data.aws_iam_policy_document.lambda_ddb_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "network_lambda" {
+  provider   = aws.acm_provider
+  role       = aws_iam_role.network_lambda.name
+  policy_arn = aws_iam_policy.lambda_ddb_access.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_execution" {
+  provider   = aws.acm_provider
+  role       = aws_iam_role.network_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 data "aws_iam_policy_document" "lambda_ddb_access" {
