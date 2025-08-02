@@ -11,8 +11,8 @@ terraform {
   backend "s3" {
     encrypt        = false
     region         = "us-east-1"
-    bucket         = "berg-industries-101672552205-us-east-1-tfstate"
-    dynamodb_table = "berg-industries-101672552205-us-east-1-tfstate-lock"
+    bucket         = "101672552205-us-east-1-tfstate"
+    dynamodb_table = "101672552205-us-east-1-tfstate-lock"
     key            = "brendanberg/dbn"
   }
 }
