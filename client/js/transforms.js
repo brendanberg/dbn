@@ -293,9 +293,11 @@ export const loadIncludesRecursive = (parse, includes) => async (node) => {
 
                 let location;
                 if (stmt.location.startsWith('@')) {
-                    location = 'https://dbn.artistcontent.com/' + stmt.location;
+                    location = 'https://dbn.artist-content.com/' + stmt.location;
                 } else if (!stmt.location.startsWith('https://')) {
                     location = '/builtins/' + stmt.location;
+                } else {
+                    location = stmt.location;
                 }
 
                 let subtree;

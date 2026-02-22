@@ -543,9 +543,7 @@ AST.Command.prototype.transform = async function (transformFunc) {
 
     if (descend) {
         node.name = await node.name.transform.apply(node.name, [transformFunc].concat(args));
-        node.args = await Promise.all(
-            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
-        );
+        node.args = await Promise.all(node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args))));
         node.statements = await Promise.all(
             node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
         );
@@ -560,9 +558,7 @@ AST.Number.prototype.transform = async function (transformFunc) {
 
     if (descend) {
         node.name = await node.name.transform.apply(node.name, [transformFunc].concat(args));
-        node.args = await Promise.all(
-            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
-        );
+        node.args = await Promise.all(node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args))));
         node.statements = await Promise.all(
             node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
         );
@@ -576,9 +572,7 @@ AST.Statement.prototype.transform = async function (transformFunc) {
     let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.args = await Promise.all(
-            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
-        );
+        node.args = await Promise.all(node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args))));
     }
 
     return node;
@@ -589,9 +583,7 @@ AST.Generator.prototype.transform = async function (transformFunc) {
     let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.args = await Promise.all(
-            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
-        );
+        node.args = await Promise.all(node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args))));
     }
 
     return node;
