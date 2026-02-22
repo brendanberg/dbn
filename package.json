@@ -26,15 +26,20 @@
     "devDependencies": {
         "clean-webpack-plugin": "^4.0.0",
         "copy-webpack-plugin": "^11.0.0",
-        "mocha": "^10.2.0",
+        "mocha": "^11.7.5",
         "pegjs": "^0.10.0",
         "pegjs-loader": "github:brendanberg/pegjs-loader",
-        "webpack": "^5.93.0",
-        "webpack-cli": "^5.0.1",
+        "webpack": "^5.105.2",
+        "webpack-cli": "^5.1.4",
         "webpack-dev-server": "^5.2.3"
     },
     "dependencies": {
-        "axios": ">=0.21.1"
+        "axios": "^1.13.5"
+    },
+    "overrides": {
+        "diff": "^8.0.2",
+        "glob": "^10.5.0",
+        "minimatch": "^10.2.1"
     },
     "license": "MIT"
 }
