@@ -1,5 +1,5 @@
 /* Draw By Numeral
- * (c) Brendan Berg 2019-2024
+ * (c) Brendan Berg 2019-2026
  *
  * main.js initializes the PixelPusher VM and connects window UI elements to
  * their desired actions. That's it :)
@@ -11,7 +11,7 @@ const MODAL_SHOW_AT_STARTUP_KEY = 'environment:modal:showAtStartup';
 const SKETCH_VALUE_KEY = 'environment:sketch.value';
 
 const SKETCH_DEFAULT_PLACEHOLDER =
-    '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon (i) for an introduction and examples.\n';
+    '// Welcome to Draw By Numeral!\n// Type a program or click the Help icon (?) for an introduction and examples.\n';
 
 const uniqueName = () => {
     let result = '';
@@ -321,11 +321,11 @@ window.addEventListener('load', function (ee) {
         banner.innerHTML = '';
     });
 
-    beautifyBtn.addEventListener('click', (e) => {
+    beautifyBtn.addEventListener('click', async (e) => {
         const source = sketch.value;
 
         try {
-            sketch.value = window.interpreter.beautify(source);
+            sketch.value = await window.interpreter.beautify(source);
         } catch (err) {
             //ga('send', 'event', 'sketch', 'error', err.message);
 

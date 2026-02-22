@@ -27,6 +27,7 @@ module.exports = {
                 { from: '*.css', to: 'css/', context: './client/css/' },
                 { from: '**/*.(svg|gif|jpg|jpeg|png)', to: 'assets/', context: './client/assets/' },
                 { from: 'client/examples', to: 'examples/' },
+                { from: 'client/builtins', to: 'builtins/' },
                 { from: 'client/icons', to: 'icons/' },
             ],
         }),
