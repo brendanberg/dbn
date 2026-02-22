@@ -1,5 +1,5 @@
 // Draw by Numeral
-// (c) Brendan Berg 2019-2024
+// (c) Brendan Berg 2019-2026
 
 const Timer = function () {
     this.startTime = 0;

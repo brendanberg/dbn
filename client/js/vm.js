@@ -1,5 +1,5 @@
 // Draw by Numeral
-// (c) Brendan Berg 2019-2024
+// (c) Brendan Berg 2019-2026
 
 import Timer from './timer';
 import * as Op from './opcodes';

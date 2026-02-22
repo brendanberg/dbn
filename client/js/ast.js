@@ -1,5 +1,5 @@
 // Draw by Numeral
-// (c) Brendan Berg 2019-2024
+// (c) Brendan Berg 2019-2026
 
 import * as Op from './opcodes';
 import assemble from './assemble';
@@ -417,6 +417,11 @@ const AST = {
         this.rhs = rhs;
     },
 
+    Load: function (loc, meta) {
+        this.meta = Object.assign({ type: 'load' }, meta || {});
+        this.location = loc;
+    },
+
     Comment: function (text, meta) {
         this.meta = Object.assign({ type: 'comment' }, meta || {});
 
@@ -428,184 +433,216 @@ AST.Block.prototype.getUnbound = function () {};
 
 // Transformation macros
 
-AST.Program.prototype.applyTransformations = function (transformations) {
-    return transformations.reduce((node, xfm) => node.transform(xfm), this);
+AST.Program.prototype.applyTransformations = async function (transformations) {
+    let node = this;
+    for (const xfm of transformations) {
+        node = await node.transform(xfm);
+    }
+    return node;
 };
 
 // Transform funcs because ugh
 
-AST.Program.prototype.transform = function (transformFunc) {
+AST.Program.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Block.prototype.transform = function (transformFunc) {
+AST.Block.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Loop.prototype.transform = function (transformFunc) {
+AST.Loop.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
         // TODO: Transform apply changes here!
         if (this.iterator !== null && this.start !== null && this.stop !== null) {
-            node.iterator = node.iterator.transform.apply(node.iterator, [transformFunc].concat(args));
-            node.start = node.start.transform.apply(node.start, [transformFunc].concat(args));
-            node.stop = node.stop.transform.apply(node.stop, [transformFunc].concat(args));
+            node.iterator = await node.iterator.transform.apply(node.iterator, [transformFunc].concat(args));
+            node.start = await node.start.transform.apply(node.start, [transformFunc].concat(args));
+            node.stop = await node.stop.transform.apply(node.stop, [transformFunc].concat(args));
         }
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Condition.prototype.transform = function (transformFunc) {
+AST.Condition.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.predicate = node.predicate.transform.apply(node.predicate, [transformFunc].concat(args));
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.predicate = await node.predicate.transform.apply(node.predicate, [transformFunc].concat(args));
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Not.prototype.transform = function (transformFunc) {
+AST.Not.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.expression = node.expression.transform.apply(node.expression, [transformFunc].concat(args));
+        node.expression = await node.expression.transform.apply(node.expression, [transformFunc].concat(args));
     }
 
     return node;
 };
 
-AST.LessThan.prototype.transform = function (transformFunc) {
+AST.LessThan.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
-        node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
+        node.lhs = await node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+        node.rhs = await node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
     }
 
     return node;
 };
 
-AST.Equals.prototype.transform = function (transformFunc) {
+AST.Equals.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
-        node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
+        node.lhs = await node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+        node.rhs = await node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
     }
 
     return node;
 };
 
-AST.Command.prototype.transform = function (transformFunc) {
+AST.Command.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.name = node.name.transform.apply(node.name, [transformFunc].concat(args));
-        node.args = node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)));
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.name = await node.name.transform.apply(node.name, [transformFunc].concat(args));
+        node.args = await Promise.all(
+            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
+        );
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Number.prototype.transform = function (transformFunc) {
+AST.Number.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.name = node.name.transform.apply(node.name, [transformFunc].concat(args));
-        node.args = node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)));
-        node.statements = node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)));
+        node.name = await node.name.transform.apply(node.name, [transformFunc].concat(args));
+        node.args = await Promise.all(
+            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
+        );
+        node.statements = await Promise.all(
+            node.statements.map((st) => st.transform.apply(st, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Statement.prototype.transform = function (transformFunc) {
+AST.Statement.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.args = node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)));
+        node.args = await Promise.all(
+            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Generator.prototype.transform = function (transformFunc) {
+AST.Generator.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.args = node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)));
+        node.args = await Promise.all(
+            node.args.map((arg) => arg.transform.apply(arg, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Identifier.prototype.transform = function (transformFunc) {
+AST.Identifier.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, __] = transformFunc.apply(null, [this].concat(args));
+    let [node, __] = await transformFunc.apply(null, [this].concat(args));
     return node;
 };
 
-AST.Integer.prototype.transform = function (transformFunc) {
+AST.Integer.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, __] = transformFunc.apply(null, [this].concat(args));
+    let [node, __] = await transformFunc.apply(null, [this].concat(args));
     return node;
 };
 
-AST.Vector.prototype.transform = function (transformFunc) {
+AST.Vector.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.values = node.values.map((val) => val.transform.apply(val, [transformFunc].concat(args)));
+        node.values = await Promise.all(
+            node.values.map((val) => val.transform.apply(val, [transformFunc].concat(args)))
+        );
     }
 
     return node;
 };
 
-AST.Operator.prototype.transform = function (transformFunc) {
+AST.Operator.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, descend] = transformFunc.apply(null, [this].concat(args));
+    let [node, descend] = await transformFunc.apply(null, [this].concat(args));
 
     if (descend) {
-        node.lhs = node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
-        node.rhs = node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
+        node.lhs = await node.lhs.transform.apply(node.lhs, [transformFunc].concat(args));
+        node.rhs = await node.rhs.transform.apply(node.rhs, [transformFunc].concat(args));
     }
 
     return node;
 };
 
-AST.Comment.prototype.transform = function (transformFunc) {
+AST.Load.prototype.transform = async function (transformFunc) {
     const args = Array.prototype.slice.call(arguments, 1);
-    let [node, __] = transformFunc.apply(null, [this].concat(args));
+    let [node, __] = await transformFunc.apply(null, [this].concat(args));
+    return node;
+};
+
+AST.Comment.prototype.transform = async function (transformFunc) {
+    const args = Array.prototype.slice.call(arguments, 1);
+    let [node, __] = await transformFunc.apply(null, [this].concat(args));
     return node;
 };
 
@@ -710,6 +747,10 @@ AST.Operator.prototype.indent = function () {
     }
 };
 
+AST.Load.prototype.indent = function () {
+    return 'Load ' + this.location;
+};
+
 // Stringification functions.
 
 AST.Program.prototype.toString = function () {
@@ -730,7 +771,7 @@ AST.Block.prototype.toString = function () {
     }
 };
 
-(AST.Loop.prototype.toString = function () {
+((AST.Loop.prototype.toString = function () {
     if (this.iterator === null && this.start === null && this.stop === null) {
         return 'Loop [forever] {' + this.statements.map((s) => s.toString()).join('\n') + '}';
     }
@@ -769,7 +810,7 @@ AST.Block.prototype.toString = function () {
             this.statements.map((s) => s.toString()).join('\n') +
             '}'
         );
-    });
+    }));
 
 AST.Number.prototype.toString = function () {
     return (
@@ -1040,6 +1081,10 @@ AST.Number.prototype.emit = function (ctx) {
         .concat([Op.STACK_FREE, this.meta.locals.length + this.meta.unbound.length, Op.RETURN])
         .concat(this.definitions.flatMap((d) => d.emit()))
         .concat([Op.LOCATION_POP]);
+};
+
+AST.Load.prototype.emit = function () {
+    throw new Error('Load statements should have been transformed away during the transformation phase');
 };
 
 AST.Statement.prototype.emit = function (ctx) {

@@ -1,5 +1,5 @@
 // Draw by Numeral
-// (c) Brendan Berg 2019-2024
+// (c) Brendan Berg 2019-2026
 
 const Canvas = function (paper) {
     this.frameRate = 1000 / 60;
